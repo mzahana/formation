@@ -7,7 +7,7 @@ import numpy as np
 # msgs
 from formation.msg import RobotState, FormationPositions
 from std_msgs.msg import Empty
-from geometry_msgs.msg import Point, PointStamped
+from geometry_msgs.msg import Point, PointStamped, PoseStamped
 from sensor_msgs.msg import NavSatFix
 from mavros_msgs.msg import *
 
