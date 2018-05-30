@@ -318,7 +318,7 @@ def main():
 	x,y,z = R.geo2desiredENU(R.curr_lat, R.curr_lon, R.gpsAlt)
 	R.start_pos = np.array([x,y,z])
 
-	rospy.logwrn("Got ground altitude = %s", R.GND_ALT)
+	rospy.logwarn("Got ground altitude = %s", R.GND_ALT)
 
 	go_sig = False
 	while not rospy.is_shutdown():
@@ -341,7 +341,7 @@ def main():
 			R.mavros_sp.position.z = R.GND_ALT + R.TOALT
 
 			if (R.curr_z_enu - R.GND_ALT) > 1.0:
-				rospy.logwrn("Robot %s is already in air", R.myID)
+				rospy.logwarn("Robot %s is already in air", R.myID)
 				R.cmd = R.cmd.fromkeys(R.cmd, 0)
 			else:
 				rospy.logwarn('Robot %s: Arm and Takeoff.', R.myID)

@@ -35,7 +35,7 @@ class Mission:
 		# safety distance
 		self.delta		= 2.0*(2**0.5)*self.R
 		# max robot's velocity
-		self.vmax		= rosp.get_param("vmax", 1.0)
+		self.vmax		= rospy.get_param("vmax", 1.0)
 
 		self.origin		= rospy.get_param("origin", [10.12345, 20.12345])
 		self.east		= rospy.get_param("east", [10.12345, 20.12345])
