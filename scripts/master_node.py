@@ -96,7 +96,7 @@ class Mission:
 			if not self.valid_P:
 				break
 
-			for j in range(n):
+			for j in range(self.n):
 				if i != j:
 					if np.linalg.norm(self.P[i,:] - self.P[j,:]) <= self.delta:
 						self.valid_P = False
@@ -107,7 +107,7 @@ class Mission:
 			if not self.valid_S:
 				break
 
-			for j in range(n):
+			for j in range(self.n):
 				if i != j:
 					if np.linalg.norm(self.S_array[i,:] - self.S_array[j,:]) <= self.delta:
 						self.valid_S = False
