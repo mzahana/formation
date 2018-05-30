@@ -199,7 +199,7 @@ class Mission:
 			self.set_start_posCb()
 			self.set_desired_formation()
 			self.validate_positions()
-			if self.valid_S and valid_P:
+			if self.valid_S and self.valid_P:
 				self.compute_assignment()
 				self.M_START = True
 
