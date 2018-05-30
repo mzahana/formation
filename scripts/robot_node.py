@@ -271,9 +271,9 @@ def main():
 
 	rospy.init_node('formation_robot_node', anonymous=True)
 
-	rospy.logwarn("Started Robot Node %s", R.myID)
-
 	R = Robot()
+
+	rospy.logwarn("Started Robot Node %s", R.myID)
 
 	mode = FcuModes()
 
