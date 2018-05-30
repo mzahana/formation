@@ -225,6 +225,8 @@ def main():
 	
 	rospy.init_node('formation_master_node', anonymous=True)
 
+	rospy.logwarn("Started Master Node.")
+
 	M = Mission()
 
 	# Subscribers: Robots states
