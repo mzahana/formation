@@ -329,15 +329,18 @@ def main():
 		if R.cmd["Arm"]:
 			R.cmd = R.cmd.fromkeys(R.cmd, 0)
 			mode.setArm()
+			rospy.logwarn("Robot %s is Arming", R.myID)
 
 		if R.cmd["Disarm"]:
 			R.cmd = R.cmd.fromkeys(R.cmd, 0)
 			mode.setDisarm()
+			rospy.logwarn("Robot %s is Disarming", R.myID)
 
 		if R.cmd["Land"]:
 			R.cmd = R.cmd.fromkeys(R.cmd, 0)
 			mode.setAutoLandMode()
 			go_sig = False
+			rospy.logwarn("Robot %s is landing", R.myID)
 
 		if R.cmd["Takeoff"]:
 			R.mavros_sp.position.z = R.GND_ALT + R.TOALT
