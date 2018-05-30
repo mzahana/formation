@@ -197,7 +197,7 @@ class Robot:
 		self.gpsAlt   = msg.altitude
 
 		# set current position in desired ENU
-		x,y,z = geo2desiredENU(self.curr_lat, self.curr_lon, self.gpsAlt)
+		x,y,z = self.geo2desiredENU(self.curr_lat, self.curr_lon, self.gpsAlt)
 		self.current_pos = np.array([x,y,z])
 
 	def localPoseCb(self, msg):
@@ -315,7 +315,7 @@ def main():
 	R.compute_local_roation()
 
 	# set start position
-	x,y,z = geo2desiredENU(R.curr_lat, R.curr_lon, R.gpsAlt)
+	x,y,z = R.geo2desiredENU(R.curr_lat, R.curr_lon, R.gpsAlt)
 	R.start_pos = np.array([x,y,z])
 
 	rospy.logwrn("Got ground altitude = %s", R.GND_ALT)
