@@ -86,7 +86,7 @@ class Mission:
 		self.r_loc_topic_names = []
 		rstr = "/robot"
 		for i in range(self.n):
-			self.r_loc_topic_names.append(rstr+str(i+1)+"/state")
+			self.r_loc_topic_names.append(rstr+str(i)+"/state")
 
 
 	def validate_positions(self):
