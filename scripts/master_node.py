@@ -28,12 +28,17 @@ from lap import lapjv
 
 class Mission:
 	def __init__(self):
+		# number of robots
 		self.n 			= rospy.get_param("nRobots", 5)
+		# robot's radius
 		self.R			= rospy.get_param("R", 0.5)
+		# safety distance
 		self.delta		= 2.0*(2**0.5)*self.R
+		# max robot's velocity
 		self.vmax		= rosp.get_param("vmax", 1.0)
-		self.origin		= rospy.get_param("origin", 5)
-		self.east		= rospy.get_param("east", 5)
+
+		self.origin		= rospy.get_param("origin", [10.12345, 20.12345])
+		self.east		= rospy.get_param("east", [10.12345, 20.12345])
 
 		# formation: start position nx3 array
 		self.P			= np.zeros((self.n,3))
@@ -58,18 +63,30 @@ class Mission:
 		# if all each robot received assigned goal
 		self.received_goals = self.n*[False]
 
+		# True if all robots arrived at their goals
+		# True if all elements in self.arrival_state are True
 		self.formation_completed = False
+
+		# Mission flags
 
 		# true if P & S are valid
 		self.valid_P		= False
 		self.valid_S		= False
+
+		self.P_is_set		= False
+		self.S_is_set		= False
+
+		self.G_is_set		= False
+
+		self.M_START		= False
+		self.M_END			= False
 
 
 		# Topics names of robots locations in local defined ENU coordiantes
 		self.r_loc_topic_names = []
 		rstr = "/robot"
 		for i in range(self.n):
-			self.r_loc_topic_names.append(rstr+str(i+1)+"/local_pos")
+			self.r_loc_topic_names.append(rstr+str(i+1)+"/state")
 
 
 	def validate_positions(self):
@@ -124,40 +141,129 @@ class Mission:
 		# update time stamp
 		self.goals_msg.header.stamp = rospy.Time.now()
 
+		self.G_is_set = True
+
 	################# Callbacks
 	def r0Cb(self, msg):
 		i=0
 		p = np.array([msg.point.x, msg.point.y, msg.point.z])
 		self.current_P[i,:] = p
+		self.arrival_state[i] = msg.arrived
+		self.received_goals[i] = msg.received_goal
 
 	def r1Cb(self, msg):
 		i=1
 		p = np.array([msg.point.x, msg.point.y, msg.point.z])
 		self.current_P[i,:] = p
+		self.arrival_state[i] = msg.arrived
+		self.received_goals[i] = msg.received_goal
 
 	def r2Cb(self, msg):
 		i=2
 		p = np.array([msg.point.x, msg.point.y, msg.point.z])
 		self.current_P[i,:] = p
+		self.arrival_state[i] = msg.arrived
+		self.received_goals[i] = msg.received_goal
 		
 	def r3Cb(self, msg):
 		i=3
 		p = np.array([msg.point.x, msg.point.y, msg.point.z])
 		self.current_P[i,:] = p
+		self.arrival_state[i] = msg.arrived
+		self.received_goals[i] = msg.received_goal
 
 	def r4Cb(self, msg):
 		i=4
 		p = np.array([msg.point.x, msg.point.y, msg.point.z])
 		self.current_P[i,:] = p
+		self.arrival_state[i] = msg.arrived
+		self.received_goals[i] = msg.received_goal
 
-	def set_start_posCb(self, msg):
+	def set_start_posCb(self):
 		"""Sets starting position from robot current position
 		"""
 		self.P = np.copy(self.current_P)
+		self.P_is_set = True
+
+	def set_desired_formation(self):
+		"""gets desired formation from shape.yaml in config folder
+		"""
+		self.S = rospy.get_param("shape")
+		self.S_array = np.array(self.S)
+		self.S_is_set = True
+
+	def startCb(self, msg):
+		if self.M_START:
+			rospy.logwarn("Mission already started!")
+		else:
+			self.set_start_posCb()
+			self.set_desired_formation()
+			self.validate_positions()
+			if self.valid_S and valid_P:
+				self.compute_assignment()
+				self.M_START = True
+
+	def landCb(self, msg):
+		# reset flags
+		self.M_START = False
+		self.P_is_set = False
+		self.S_is_set = False
+		self.G_is_set = False
+
+	def holdCb(self, msg):
+		# reset flags
+		self.M_START = False
+		self.P_is_set = False
+		self.S_is_set = False
+		self.G_is_set = False
+
+	def isFormationComplete(self):
+		self.formation_completed = all(self.arrival_state)
+		return self.formation_completed
 
 def main():
+	
+	rospy.init_node('formation_master_node', anonymous=True)
 
 	M = Mission()
+
+	# Subscribers: Robots states
+	rospy.Subscriber(M.r_loc_topic_names[0], RobotState, M.r0Cb)
+	rospy.Subscriber(M.r_loc_topic_names[1], RobotState, M.r1Cb)
+	rospy.Subscriber(M.r_loc_topic_names[2], RobotState, M.r2Cb)
+	rospy.Subscriber(M.r_loc_topic_names[3], RobotState, M.r3Cb)
+	rospy.Subscriber(M.r_loc_topic_names[4], RobotState, M.r4Cb)
+
+	# Subscriber: start flag
+	rospy.Subscriber("/start", Empty, M.startCb)
+	#Subscriber: land/hold
+	rospy.Subscriber("/land", Empty, M.landCb)
+	rospy.Subscriber("/hold", Empty, M.holdCb)
+
+	# Publisher: Formation goals & tf
+	form_pub = rospy.Publisher("/formation", FormationPositions, queue_size=1)
+	# Publisher: GO signal
+	go_pub = rospy.Publisher("/go", Empty, queue_size=1)
+	go_msg = Empty()
+
+	rate = rospy.Rate(10.0)
+
+	while not rospy.is_shutdown():
+
+		if M.M_START:
+			M.M_END = False
+			if not all(M.received_goals):
+				form_pub.publish(M.goals_msg)
+			else:
+				go_pub.publish(go_msg)
+		if M.isFormationComplete():
+			M.M_END = True
+			M.M_START = False
+			M.P_is_set = False
+			M.S_is_set = False
+			M.G_is_set = False
+
+		rate.sleep()
 
 
 if __name__ == '__main__':
