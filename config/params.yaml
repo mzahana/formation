@@ -1,0 +1,11 @@
+nRobots: 5
+
+# Robot's radius
+R: 0.5
+
+# maximum robot's velocity [m/s]
+vmax: 2.0
+
+# origin and east GPS points
+origin: [22.12345, 30.12345]
+east: [22.12345, 30.12345]
