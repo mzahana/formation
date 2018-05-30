@@ -348,8 +348,8 @@ def main():
 			else:
 				rospy.logwarn('Robot %s: Arm and Takeoff.', R.myID)
 				if (R.curr_z_enu  - R.GND_ALT) < 0.5:
-					R.mavros_sp.position.x = R.local_pose.position.x
-					R.mavros_sp.position.y = R.local_pose.position.y
+					R.mavros_sp.position.x = R.local_pose.pose.position.x
+					R.mavros_sp.position.y = R.local_pose.pose.position.y
 				else:
 					R.cmd = R.cmd.fromkeys(R.cmd, 0)
 
