@@ -197,7 +197,7 @@ class Robot:
 		self.gpsAlt   = msg.altitude
 
 		# set current position in desired ENU
-		x,y,z = geo2desiredENU(self.curr_lat, self..curr_lon, self.gpsAlt)
+		x,y,z = geo2desiredENU(self.curr_lat, self.curr_lon, self.gpsAlt)
 		self.current_pos = np.array([x,y,z])
 
 	def localPoseCb(self, msg):
