@@ -101,6 +101,8 @@ class Mission:
 					if np.linalg.norm(self.P[i,:] - self.P[j,:]) <= self.delta:
 						self.valid_P = False
 						rospy.logwarn("Robots %s and %s are not well seperated", i,j)
+						print self.P[i,:]
+						print self.P[j,:]
 						break
 
 		for i in range(self.n):
@@ -179,6 +181,14 @@ class Mission:
 		self.arrival_state[i] = msg.arrived
 		self.received_goals[i] = msg.received_goal
 
+	def r5Cb(self, msg):
+		i=5
+		p = np.array([msg.point.x, msg.point.y, msg.point.z])
+		self.current_P[i,:] = p
+		self.arrival_state[i] = msg.arrived
+		self.received_goals[i] = msg.received_goal
+
+
 	def set_start_posCb(self):
 		"""Sets starting position from robot current position
 		"""
@@ -198,9 +208,14 @@ class Mission:
 		else:
 			self.set_start_posCb()
 			self.set_desired_formation()
+			print "P/S"
+			print self.P
+			print self.S_array
 			self.validate_positions()
 			if self.valid_S and self.valid_P:
 				self.compute_assignment()
+				print "G:"
+				print self.G
 				self.M_START = True
 
 	def landCb(self, msg):
@@ -235,6 +250,7 @@ def main():
 	rospy.Subscriber(M.r_loc_topic_names[2], RobotState, M.r2Cb)
 	rospy.Subscriber(M.r_loc_topic_names[3], RobotState, M.r3Cb)
 	rospy.Subscriber(M.r_loc_topic_names[4], RobotState, M.r4Cb)
+	rospy.Subscriber(M.r_loc_topic_names[5], RobotState, M.r5Cb)
 
 	# Subscriber: start flag
 	rospy.Subscriber("/start", Empty, M.startCb)
@@ -250,20 +266,23 @@ def main():
 
 	rate = rospy.Rate(10.0)
 
+	go_sig = False
 	while not rospy.is_shutdown():
 
-		if M.M_START:
-			M.M_END = False
-			if not all(M.received_goals):
-				form_pub.publish(M.goals_msg)
-			else:
-				go_pub.publish(go_msg)
 		if M.isFormationComplete():
 			M.M_END = True
 			M.M_START = False
 			M.P_is_set = False
 			M.S_is_set = False
 			M.G_is_set = False
+
+		if M.M_START:
+			M.M_END = False
+			if not all(M.received_goals):
+				form_pub.publish(M.goals_msg)
+			elif not go_sig:
+				go_pub.publish(go_msg)
+				go_sig = True
 
 		rate.sleep()
 

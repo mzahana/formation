@@ -10,6 +10,7 @@ from std_msgs.msg import Empty
 from geometry_msgs.msg import Point, PointStamped, PoseStamped
 from sensor_msgs.msg import NavSatFix
 from mavros_msgs.msg import *
+from mavros_msgs.srv import *
 
 # math
 from math import atan2, cos, sin
@@ -140,6 +141,7 @@ class Robot:
 
 	def formationCb(self, msg):
 		self.tf = msg.tf
+		print "tf=", self.tf
 		for i in range(self.n):
 			self.G[i,:] = np.array([msg.goals[i].x, msg.goals[i].y, msg.goals[i].z])
 
@@ -199,6 +201,9 @@ class Robot:
 		# set current position in desired ENU
 		x,y,z = self.geo2desiredENU(self.curr_lat, self.curr_lon, self.gpsAlt)
 		self.current_pos = np.array([x,y,z])
+		self.robot_msg.point.x = x
+		self.robot_msg.point.y = y
+		self.robot_msg.point.z = z
 
 	def localPoseCb(self, msg):
 		self.local_pose = msg
@@ -206,6 +211,8 @@ class Robot:
 	############### End of Callbacks #################
 
 	def next_sp(self, t):
+		if t > self.tf:
+			t = self.tf
 		self.target_pos = self.start_pos + ( (self.my_goal - self.start_pos)/self.tf ) * t
 
 	def compute_local_roation(self):
@@ -371,10 +378,12 @@ def main():
 
 			if np.linalg.norm(R.my_goal - R.current_pos) < 0.5:
 				R.cmd = R.cmd.fromkeys(R.cmd, 0)
-				R.robot_msg.received_goal = False
+				#R.robot_msg.received_goal = False
 				R.robot_msg.arrived = True
 				go_sig = False
 
+		R.mavros_sp.header.stamp = rospy.Time.now()
+		R.robot_msg.header.stamp = rospy.Time.now()
 		setp_pub.publish(R.mavros_sp)
 		robot_pub.publish(R.robot_msg)
 
