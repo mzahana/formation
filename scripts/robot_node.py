@@ -118,6 +118,9 @@ class Robot:
 		# Takeof altitude:
 		self.TOALT				= rospy.get_param("TOALT", 1.0)
 
+		# distance threshold
+		self.dist_TH			= rospy.get_param("dist_TH", 0.5)
+
 		# Instantiate a setpoint topic structure
 		self.mavros_sp			= PositionTarget()
 		# use position setpoints
@@ -137,17 +140,30 @@ class Robot:
 		# Robot state msg
 		self.robot_msg			= RobotState()
 
+		# used to cmopute t0 only once after the GO signal is received
+		self.t0_trigger			= False
+
 	#################### Calbacks #####################
 
 	def formationCb(self, msg):
 		self.tf = msg.tf
-		print "tf=", self.tf
+		rospy.logwarn("[Robot %s]: Received Goals", self.myID)
 		for i in range(self.n):
 			self.G[i,:] = np.array([msg.goals[i].x, msg.goals[i].y, msg.goals[i].z])
 
 		self.my_goal = self.G[self.myID,:]
 
 		self.robot_msg.received_goal = True
+
+		# set start position
+		x,y,z = self.geo2desiredENU(self.curr_lat, self.curr_lon, self.gpsAlt)
+		self.start_pos = np.array([x,y,z])
+
+		# reset flag
+		self.robot_msg.arrived = False
+
+		# reset go_sig
+		self.go_sig				= False
 
 	def armCb(self, msg):
 		self.cmd = self.cmd.fromkeys(self.cmd, 0)
@@ -323,13 +339,9 @@ def main():
 	# compute local rotation
 	R.compute_local_roation()
 
-	# set start position
-	x,y,z = R.geo2desiredENU(R.curr_lat, R.curr_lon, R.gpsAlt)
-	R.start_pos = np.array([x,y,z])
 
 	rospy.logwarn("Got ground altitude = %s", R.GND_ALT)
 
-	go_sig = False
 	while not rospy.is_shutdown():
 
 		# react to FCU mode requests 
@@ -366,21 +378,23 @@ def main():
 				mode.setArm()
 				mode.setOffboardMode()
 
-		if R.cmd["GO"] and R.robot_msg.received_goal:
+		if R.cmd["GO"] and R.robot_msg.received_goal and not R.robot_msg.arrived:
 			R.cmd = R.cmd.fromkeys(R.cmd, 0)
 			R.cmd["GO"] = 1
-			if not go_sig:
+			if not R.t0_trigger:
 				t0 = time.time()
-				go_sig = True
+				R.t0_trigger = True
 			t = time.time()
 			R.next_sp(t-t0)
 			R.desiredENU2localSp(R.target_pos[0], R.target_pos[1], R.target_pos[2])
 
-			if np.linalg.norm(R.my_goal - R.current_pos) < 0.5:
+			if np.linalg.norm(R.my_goal - R.current_pos) < R.dist_TH:
 				R.cmd = R.cmd.fromkeys(R.cmd, 0)
-				#R.robot_msg.received_goal = False
+				R.robot_msg.received_goal = False
 				R.robot_msg.arrived = True
-				go_sig = False
+		elif R.cmd["GO"] and (not R.robot_msg.received_goal or R.robot_msg.arrived):
+			R.cmd = R.cmd.fromkeys(R.cmd, 0)
+			rospy.logwarn("[Robot %s]: Not executing GO signal. Either Goal is not recieved or already arrived", R.myID)
 
 		R.mavros_sp.header.stamp = rospy.Time.now()
 		R.robot_msg.header.stamp = rospy.Time.now()

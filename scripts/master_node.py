@@ -42,9 +42,22 @@ class Mission:
 
 		# formation: start position nx3 array
 		self.P			= np.zeros((self.n,3))
+
 		# formation: desired shape positions
 		self.S			= rospy.get_param("shape")
-		self.S_array	= np.array(self.S)
+
+		# get number of desired shapes
+		self.nS			= len(self.S)
+
+		# shape durations
+		self.Sdt			= rospy.get_param("durations", [5.0])
+
+		# shape counter: used to transition between shapes in mission
+		self.shape_counter	= 0
+
+		# holds one shape at a time
+		self.S_array	= np.array(self.S[0])
+
 		# formation: goal positions nx3 array
 		self.G			= np.zeros((self.n,3))
 
@@ -78,8 +91,16 @@ class Mission:
 
 		self.G_is_set		= False
 
-		self.M_START		= False
+		self.USER_START		= False # set through user input
 		self.M_END			= False
+
+		self.START			= False # set through code only
+		self.ASSIGNMENT		= False
+		self.GOAL_SEND		= False
+		self.GOAL_RECEIVE	= False
+		self.SEND_GO		= True
+		self.CHECK_SHAPE	= False
+		self.STAY_IN_SHAPE	= False
 
 
 		# Topics names of robots locations in local defined ENU coordiantes
@@ -113,7 +134,7 @@ class Mission:
 				if i != j:
 					if np.linalg.norm(self.S_array[i,:] - self.S_array[j,:]) <= self.delta:
 						self.valid_S = False
-						rospy.logwarn("Goals %s and %s are not well seperated", i,j)
+						rospy.logwarn("[Shape %s]: Goals %s and %s are not well seperated", self.shape_counter, i,j)
 						break
 
 	def compute_assignment(self):
@@ -144,6 +165,11 @@ class Mission:
 		self.goals_msg.header.stamp = rospy.Time.now()
 
 		self.G_is_set = True
+
+
+		self.trigger_sig = False
+
+		self.shape_is_complete = False
 
 	################# Callbacks
 	def r0Cb(self, msg):
@@ -199,38 +225,36 @@ class Mission:
 		"""gets desired formation from shape.yaml in config folder
 		"""
 		self.S = rospy.get_param("shape")
-		self.S_array = np.array(self.S)
+		self.S_array = np.array(self.S[self.shape_counter])
 		self.S_is_set = True
 
 	def startCb(self, msg):
-		if self.M_START:
+		if self.USER_START:
 			rospy.logwarn("Mission already started!")
 		else:
-			self.set_start_posCb()
-			self.set_desired_formation()
-			print "P/S"
-			print self.P
-			print self.S_array
-			self.validate_positions()
-			if self.valid_S and self.valid_P:
-				self.compute_assignment()
-				print "G:"
-				print self.G
-				self.M_START = True
+			#self.start_assignment()
+			self.USER_START = True
+			self.M_END = False
+
+	def start_assignment(self):
+		self.set_start_posCb()
+		self.set_desired_formation()
+		self.validate_positions()
+		if self.valid_S and self.valid_P:
+			self.compute_assignment()
+			return True
+		else:
+			#self.USER_START = False
+			return False
 
 	def landCb(self, msg):
 		# reset flags
 		self.M_START = False
-		self.P_is_set = False
-		self.S_is_set = False
-		self.G_is_set = False
-
+		self.M_END = True
 	def holdCb(self, msg):
 		# reset flags
 		self.M_START = False
-		self.P_is_set = False
-		self.S_is_set = False
-		self.G_is_set = False
+		self.M_END = True
 
 	def isFormationComplete(self):
 		self.formation_completed = all(self.arrival_state)
@@ -266,11 +290,85 @@ def main():
 
 	rate = rospy.Rate(10.0)
 
-	go_sig = False
+	# Activiat START state
+	M.START = True
+
 	while not rospy.is_shutdown():
 
+		if M.M_END:
+			M.START = True
+			M.ASSIGNMENT = False
+			M.GOAL_SEND = False
+			M.SEND_GO = False
+			M.CHECK_SHAPE = False
+			M.STAY_IN_SHAPE = False
+			M.P_is_set = False
+			M.S_is_set = False
+			M.G_is_set = False
+			M.shape_counter= 0
+
+
+		if M.USER_START and M.START:
+			M.START = False
+			M.ASSIGNMENT = True
+
+		if M.ASSIGNMENT:
+			M.ASSIGNMENT = False
+
+			rospy.logwarn("Processing shape %s", M.shape_counter)
+			if M.start_assignment():
+				M.GOAL_SEND = True
+			else:
+				M.M_END = True
+
+		if M.GOAL_SEND:
+			if not all(M.received_goals):
+				form_pub.publish(M.goals_msg)
+			else:
+				M.GOAL_SEND = False
+				M.SEND_GO = True
+
+		if M.SEND_GO:
+			go_pub.publish(go_msg)
+			M.SEND_GO = False
+			M.CHECK_SHAPE = True
+
+		if M.CHECK_SHAPE:
+			if M.isFormationComplete():
+				t0 = time.time()
+				M.CHECK_SHAPE = False
+				M.STAY_IN_SHAPE = True
+
+				rospy.logwarn("Shape %s is in place", M.shape_counter)
+
+		if M.STAY_IN_SHAPE:
+			dt = time.time() - t0
+			if len(M.Sdt) == M.nS:
+				dt_shape = M.Sdt[M.shape_counter]
+			else:
+				dt_shape = M.Sdt[0]
+
+			if dt > dt_shape:
+				M.STAY_IN_SHAPE = False
+				M.shape_counter = M.shape_counter + 1
+
+				if M.shape_counter > (M.nS-1):
+					M.shape_counter = 0 # reset counter for new mission
+					M.M_END = True
+					M.START = True # to be ready for new start
+					M.USER_START = False # to wait for start signal from user
+
+					rospy.logwarn("############ Mission is done! ###############")
+				else:
+					M.ASSIGNMENT = True
+					rospy.logwarn("Going to shape %s", M.shape_counter)
+
+
+
+		"""
+
 		if M.isFormationComplete():
-			M.M_END = True
+			M.shape_is_complete = True
 			M.M_START = False
 			M.P_is_set = False
 			M.S_is_set = False
@@ -280,9 +378,12 @@ def main():
 			M.M_END = False
 			if not all(M.received_goals):
 				form_pub.publish(M.goals_msg)
-			elif not go_sig:
-				go_pub.publish(go_msg)
-				go_sig = True
+			else:
+				if not M.trigger_sig: # to publish go_msg only once
+					go_pub.publish(go_msg)
+					M.trigger_sig = True
+
+		"""
 
 		rate.sleep()
 
