@@ -10,6 +10,9 @@ vmax: 2.0
 # Takeoff altitude [meters]
 TOALT: 2.0
 
+# distance threshold [meters]
+dist_TH: 0.1
+
 # origin and east GPS points
 origin: [47.397742, 8.545594]
 east: [47.3977419, 8.5458604]
