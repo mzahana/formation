@@ -91,6 +91,9 @@ class Robot:
 		self.east				= rospy.get_param("east", [10.12345, 20.12345])
 		self.h0					= rospy.get_param("h0", 0.0)
 
+		# if indoor position is used
+		self.INDOOR				= rospy.get_param("indoor", False)
+
 		# rotation from geo local ENU to desired local ENU
 		self.local_rot			= 0.0
 
@@ -156,7 +159,13 @@ class Robot:
 		self.robot_msg.received_goal = True
 
 		# set start position
-		x,y,z = self.geo2desiredENU(self.curr_lat, self.curr_lon, self.gpsAlt)
+		if self.INDOOR:
+			x = self.local_pose.pose.position.x
+			y = self.local_pose.pose.position.y
+			z = self.local_pose.pose.position.z
+		else:
+			x,y,z = self.geo2desiredENU(self.curr_lat, self.curr_lon, self.gpsAlt)
+
 		self.start_pos = np.array([x,y,z])
 
 		# reset flag
@@ -215,7 +224,13 @@ class Robot:
 		self.gpsAlt   = msg.altitude
 
 		# set current position in desired ENU
-		x,y,z = self.geo2desiredENU(self.curr_lat, self.curr_lon, self.gpsAlt)
+		if self.INDOOR:
+			x = self.local_pose.pose.position.x
+			y = self.local_pose.pose.position.y
+			z = self.local_pose.pose.position.z
+		else:
+			x,y,z = self.geo2desiredENU(self.curr_lat, self.curr_lon, self.gpsAlt)
+
 		self.current_pos = np.array([x,y,z])
 		self.robot_msg.point.x = x
 		self.robot_msg.point.y = y
@@ -281,14 +296,21 @@ class Robot:
 	def desiredENU2localSp(self, xd, yd, zd):
 		"""Converts locaion in desired ENU to setpoint in robot's ENU
 		"""
-		lat, lon, alt = self.desiredENU2geo(xd, yd, zd)
-		# converts to differences in robot's ENU
-		x,y,z = pm.geodetic2enu(lat, lon, alt, self.curr_lat, self.curr_lon, self.gpsAlt)
 
-		# Add the differences to robot's current location
-		self.mavros_sp.position.x = self.local_pose.pose.position.x + x
-		self.mavros_sp.position.y = self.local_pose.pose.position.y + y
-		self.mavros_sp.position.z = zd + self.GND_ALT
+		if self.INDOOR:
+			self.mavros_sp.position.x = xd
+			self.mavros_sp.position.y = yd
+			self.mavros_sp.position.z = zd
+		else:
+
+			lat, lon, alt = self.desiredENU2geo(xd, yd, zd)
+			# converts to differences in robot's ENU
+			x,y,z = pm.geodetic2enu(lat, lon, alt, self.curr_lat, self.curr_lon, self.gpsAlt)
+
+			# Add the differences to robot's current location
+			self.mavros_sp.position.x = self.local_pose.pose.position.x + x
+			self.mavros_sp.position.y = self.local_pose.pose.position.y + y
+			self.mavros_sp.position.z = zd + self.GND_ALT
 
 def main():
 

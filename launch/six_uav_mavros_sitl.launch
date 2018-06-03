@@ -49,6 +49,7 @@
             <arg name="rcS" value="$(arg rcS1)"/>
             <arg name="mavlink_udp_port" value="14560"/>
             <arg name="ID" value="$(arg ID)"/>
+            <arg name="uav_color" value="Red"/>
         </include>
 
         <include file="$(find mavros)/launch/node.launch">
@@ -82,6 +83,7 @@
             <arg name="rcS" value="$(arg rcS1)"/>
             <arg name="mavlink_udp_port" value="14562"/>
             <arg name="ID" value="$(arg ID)"/>
+            <arg name="uav_color" value="Red"/>
         </include>
 
         <include file="$(find mavros)/launch/node.launch">
@@ -115,6 +117,7 @@
             <arg name="rcS" value="$(arg rcS1)"/>
             <arg name="mavlink_udp_port" value="14563"/>
             <arg name="ID" value="$(arg ID)"/>
+            <arg name="uav_color" value="Red"/>
         </include>
 
         <include file="$(find mavros)/launch/node.launch">
@@ -148,6 +151,7 @@
             <arg name="rcS" value="$(arg rcS1)"/>
             <arg name="mavlink_udp_port" value="14564"/>
             <arg name="ID" value="$(arg ID)"/>
+            <arg name="uav_color" value="Red"/>
         </include>
 
         <include file="$(find mavros)/launch/node.launch">
@@ -181,6 +185,7 @@
             <arg name="rcS" value="$(arg rcS1)"/>
             <arg name="mavlink_udp_port" value="15000"/>
             <arg name="ID" value="$(arg ID)"/>
+            <arg name="uav_color" value="Red"/>
         </include>
 
         <include file="$(find mavros)/launch/node.launch">
@@ -214,6 +219,7 @@
             <arg name="rcS" value="$(arg rcS1)"/>
             <arg name="mavlink_udp_port" value="15001"/>
             <arg name="ID" value="$(arg ID)"/>
+            <arg name="uav_color" value="Red"/>
         </include>
 
         <include file="$(find mavros)/launch/node.launch">

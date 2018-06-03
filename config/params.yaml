@@ -1,6 +1,9 @@
 # Number of Robots
 nRobots: 6
 
+# if indoor position system is used
+indoor: False
+
 # Robot's radius
 R: 0.5
 

@@ -297,6 +297,7 @@ def main():
 
 		if M.M_END:
 			M.START = True
+			M.USER_START = False
 			M.ASSIGNMENT = False
 			M.GOAL_SEND = False
 			M.SEND_GO = False
@@ -340,6 +341,12 @@ def main():
 				M.STAY_IN_SHAPE = True
 
 				rospy.logwarn("Shape %s is in place", M.shape_counter)
+				if len(M.Sdt) == M.nS:
+					dt_shape = M.Sdt[M.shape_counter]
+				else:
+					dt_shape = M.Sdt[0]
+
+				rospy.logwarn("Waiting %s [seconds] at shape %s.", dt_shape, M.shape_counter)
 
 		if M.STAY_IN_SHAPE:
 			dt = time.time() - t0

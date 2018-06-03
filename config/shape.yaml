@@ -19,4 +19,4 @@ shape: [
 ]
 # wait time for each shape before transitioning to the next, [seconds]
 # if only one duration is provided, it will be used for all shapes
-duration: [5.0]
+durations: [5.0]
