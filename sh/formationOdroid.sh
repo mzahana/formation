@@ -15,8 +15,8 @@ cd ./catkin_ws/src
 catkin_init_workspace
 wstool init
 sudo apt-get install python-wstool python-rosinstall-generator python-catkin-tools
+mkdir formation
 mv ~/formation/* ./formation/
-cd ..
 catkin build
 echo "source ~/catkin_ws/devel/setup.bash" >> ~/.bashrc
 source ~/.bashrc
