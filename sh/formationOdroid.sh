@@ -1,8 +1,5 @@
 #!/bin/sh
-# cp ~/formation/sh/formationOdroid.sh ~
-# cd ~
-# chmod +x ./formationOdroid.sh
-# ./formationOdroid.sh
+cd ~
 sudo rm /var/lib/dpkg/lock
 sudo apt-get install vim -y
 sudo apt-get install curl -y
@@ -19,4 +16,6 @@ mkdir formation
 mv ~/formation/* ./formation/
 catkin build
 echo "source ~/catkin_ws/devel/setup.bash" >> ~/.bashrc
-source ~/.bashrc
+echo "export ROS_MASTER_URI=http://192.168.0.105:11311" >> ~/.bashrc
+ip=`ifconfig wlan0 | sed -En 's/127.0.0.1//;s/.*inet (addr:)?(([0-9]*\.){3}[0-9]*).*/\2/p'`
+echo "export ROS_HOSTNAME=$ip" >> ~/.bashrc
