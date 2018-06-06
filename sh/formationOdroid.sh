@@ -1,8 +1,8 @@
 #!/bin/sh
-cp ~/formation/sh/formationOdroid.sh ~
-cd ~
-chmod +x ./formationOdroid.sh
-./formationOdroid.sh
+# cp ~/formation/sh/formationOdroid.sh ~
+# cd ~
+# chmod +x ./formationOdroid.sh
+# ./formationOdroid.sh
 sudo rm /var/lib/dpkg/lock
 sudo apt-get install vim -y
 sudo apt-get install curl -y
