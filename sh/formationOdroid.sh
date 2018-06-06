@@ -12,8 +12,9 @@ cd ./catkin_ws/src
 catkin_init_workspace
 wstool init
 sudo apt-get install python-wstool python-rosinstall-generator python-catkin-tools
-mkdir formation
-mv ~/formation/* ./formation/
+mv ~/formation ./formation
+mkdir ./formation/src
+cd ..
 catkin build
 echo "source ~/catkin_ws/devel/setup.bash" >> ~/.bashrc
 echo "export ROS_MASTER_URI=http://192.168.0.105:11311" >> ~/.bashrc
