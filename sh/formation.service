@@ -1,0 +1,10 @@
+[Unit]
+Description=formation 
+
+[Service]
+Type=forking
+ExecStart=/bin/bash -c "source /opt/ros/kinetic/setup.bash; /usr/bin/python /opt/ros/kinetic/bin/roslaunch formation mavros_and_robot_nodes.launch"
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target
