@@ -11,7 +11,7 @@ R: 0.5
 vmax: 2.0
 
 # Takeoff altitude [meters]
-TOALT: 2.0
+TOALT: 1.5
 
 # distance threshold [meters]
 dist_TH: 0.1

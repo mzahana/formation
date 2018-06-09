@@ -4,6 +4,8 @@ import rospy # ROS interface
 import pymap3d as pm # coordinate conversion
 import numpy as np
 
+from subprocess import call
+
 # msgs
 from formation.msg import RobotState, FormationPositions
 from std_msgs.msg import Empty
@@ -239,6 +241,12 @@ class Robot:
 	def localPoseCb(self, msg):
 		self.local_pose = msg
 		self.curr_z_enu = msg.pose.position.z
+
+	def shutdownCb(self, msg):
+		call("sudo shutdown -h now", shell=True)
+
+	def rebootCb(self, msg):
+		call("sudo reboot", shell=True)
 	############### End of Callbacks #################
 
 	def next_sp(self, t):
@@ -343,6 +351,12 @@ def main():
 	rospy.Subscriber('/go', Empty, R.goCb)
 
 	rospy.Subscriber('/formation', FormationPositions, R.formationCb)
+
+	rospy.Subscriber('shutdown', Empty, R.shutdownCb)
+	rospy.Subscriber('/shutdown', Empty, R.shutdownCb)
+
+	rospy.Subscriber('reboot', Empty, R.rebootCb)
+	rospy.Subscriber('/reboot', Empty, R.rebootCb)
 
 	# Publisher: PositionTarget
 	setp_pub = rospy.Publisher("mavros/setpoint_raw/local", PositionTarget, queue_size=1)
