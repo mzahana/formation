@@ -1,3 +1,6 @@
+# Wiki
+Read the Wiki at https://github.com/mzahana/formation/wiki
+
 # Formation
 Task assignment and planning for multi-robot formation. This is based on linear sum assignment.
 # References
