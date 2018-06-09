@@ -7,14 +7,18 @@ curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py
 sudo python get-pip.py
 sudo pip install pymap3d
 sudo pip install lap
-mkdir -p ./catkin_ws/src
-cd ./catkin_ws/src
-catkin_init_workspace
-wstool init
+#mkdir -p ./catkin_ws/src
+#cd ./catkin_ws/src
+#catkin_init_workspace
+#wstool init
 sudo apt-get install python-wstool python-rosinstall-generator python-catkin-tools
-mv ~/formation ./formation
-mkdir ./formation/src
-cd ..
+#mv ~/formation ./formation
+#mkdir ./formation/src
+mkdir ~/scripts
+cd ~/catkin_ws/src/formation/scripts
+cp startup_launch.sh ~/scripts/
+
+cd ~/catkin_ws
 catkin build
 echo "source ~/catkin_ws/devel/setup.bash" >> ~/.bashrc
 echo "export ROS_MASTER_URI=http://192.168.0.105:11311" >> ~/.bashrc
