@@ -17,6 +17,8 @@ sudo apt-get install python-wstool python-rosinstall-generator python-catkin-too
 mkdir ~/scripts
 cd ~/catkin_ws/src/formation/scripts
 cp startup_launch.sh ~/scripts/
+cd ~/scripts
+chmod +x startup_launch.sh
 
 cd ~/catkin_ws
 catkin build
