@@ -242,6 +242,15 @@ class Robot:
 		self.local_pose = msg
 		self.curr_z_enu = msg.pose.position.z
 
+	def originCb(self, msg):
+			self.origin[0] = msg.x
+			self.origin[1] = msg.y
+			self.h0 = msg.z
+
+	def eastCb(self, msg):
+			self.east[0] = msg.x
+			self.east[1] = msg.y
+
 	def shutdownCb(self, msg):
 		call("sudo shutdown -h now", shell=True)
 
@@ -335,6 +344,10 @@ def main():
 
 	# Subscriber: Local pose
 	rospy.Subscriber("mavros/local_position/pose", PoseStamped, R.localPoseCb)
+
+	# Subscriber of origin/east coordinates
+	ropsy.Subscriber("/setOrigin", Point, R.originCb)
+	ropsy.Subscriber("/setEast", Point, R.eastCb)
 
 	# Subscribers: Commands
 	rospy.Subscriber('takeoff', Empty, R.takeoffCb)

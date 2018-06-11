@@ -172,6 +172,15 @@ class Mission:
 		self.shape_is_complete = False
 
 	################# Callbacks
+
+	def originCb(self, msg):
+			self.origin[0] = msg.x
+			self.origin[1] = msg.y
+
+	def eastCb(self, msg):
+			self.east[0] = msg.x
+			self.east[1] = msg.y
+
 	def r0Cb(self, msg):
 		i=0
 		p = np.array([msg.point.x, msg.point.y, msg.point.z])
@@ -275,6 +284,10 @@ def main():
 	rospy.Subscriber(M.r_loc_topic_names[3], RobotState, M.r3Cb)
 	rospy.Subscriber(M.r_loc_topic_names[4], RobotState, M.r4Cb)
 	rospy.Subscriber(M.r_loc_topic_names[5], RobotState, M.r5Cb)
+
+	# Subscriber of origin/east coordinates
+	ropsy.Subscriber("/setOrigin", Point, R.originCb)
+	ropsy.Subscriber("/setEast", Point, R.eastCb)
 
 	# Subscriber: start flag
 	rospy.Subscriber("/start", Empty, M.startCb)
