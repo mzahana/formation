@@ -258,9 +258,13 @@ class Robot:
 			self.origin[1] = msg.y
 			self.h0 = msg.z
 
+			self.compute_local_roation()
+
 	def eastCb(self, msg):
 			self.east[0] = msg.x
 			self.east[1] = msg.y
+
+			self.compute_local_roation()
 
 	def shutdownCb(self, msg):
 		call("sudo shutdown -h now", shell=True)
