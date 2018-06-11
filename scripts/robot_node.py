@@ -8,7 +8,7 @@ from subprocess import call
 
 # msgs
 from formation.msg import RobotState, FormationPositions
-from std_msgs.msg import Empty
+from std_msgs.msg import Empty, Int32
 from geometry_msgs.msg import Point, PointStamped, PoseStamped
 from sensor_msgs.msg import NavSatFix
 from mavros_msgs.msg import *
@@ -242,6 +242,9 @@ class Robot:
 		self.local_pose = msg
 		self.curr_z_enu = msg.pose.position.z
 
+	def setnRobotsCb(self, msg):
+		self.n = msg.data
+
 	def originCb(self, msg):
 			self.origin[0] = msg.x
 			self.origin[1] = msg.y
@@ -344,6 +347,9 @@ def main():
 
 	# Subscriber: Local pose
 	rospy.Subscriber("mavros/local_position/pose", PoseStamped, R.localPoseCb)
+
+	# Subscriber nRobots
+	rospy.Subscriber("/setnRobots", Int32, R.setnRobots)
 
 	# Subscriber of origin/east coordinates
 	rospy.Subscriber("/setOrigin", Point, R.originCb)

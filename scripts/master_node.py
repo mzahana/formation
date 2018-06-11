@@ -5,7 +5,7 @@ import pymap3d as pm # coordinate conversion
 
 # msgs
 from formation.msg import RobotState, FormationPositions
-from std_msgs.msg import Empty
+from std_msgs.msg import Empty, Int32
 from geometry_msgs.msg import Point, PointStamped
 from sensor_msgs.msg import NavSatFix
 from mavros_msgs.msg import *
@@ -173,6 +173,9 @@ class Mission:
 
 	################# Callbacks
 
+	def setnRobotsCb(self, msg):
+		self.n = msg.data
+
 	def originCb(self, msg):
 			self.origin[0] = msg.x
 			self.origin[1] = msg.y
@@ -284,6 +287,9 @@ def main():
 	rospy.Subscriber(M.r_loc_topic_names[3], RobotState, M.r3Cb)
 	rospy.Subscriber(M.r_loc_topic_names[4], RobotState, M.r4Cb)
 	rospy.Subscriber(M.r_loc_topic_names[5], RobotState, M.r5Cb)
+
+	# Subscriber nRobots
+	rospy.Subscriber("/setnRobots", Int32, M.setnRobots)
 
 	# Subscriber of origin/east coordinates
 	rospy.Subscriber("/setOrigin", Point, M.originCb)
