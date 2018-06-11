@@ -346,8 +346,8 @@ def main():
 	rospy.Subscriber("mavros/local_position/pose", PoseStamped, R.localPoseCb)
 
 	# Subscriber of origin/east coordinates
-	ropsy.Subscriber("/setOrigin", Point, R.originCb)
-	ropsy.Subscriber("/setEast", Point, R.eastCb)
+	rospy.Subscriber("/setOrigin", Point, R.originCb)
+	rospy.Subscriber("/setEast", Point, R.eastCb)
 
 	# Subscribers: Commands
 	rospy.Subscriber('takeoff', Empty, R.takeoffCb)
