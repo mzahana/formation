@@ -132,7 +132,7 @@ class Robot:
 		self.mavros_sp.type_mask= int('101111111000', 2)
 
 		# Disctionary to hold boolean status of commands
-		self.cmd				= {"Takeoff": 0, "Land": 0, "Arm": 0, "Disarm": 0, "Hold": 0, "GO": 0}
+		self.cmd				= {"Takeoff": 0, "Land": 0, "Arm": 0, "Disarm": 0, "Hold": 0, "GO": 0, "POSCTL": 0}
 
 		# Goal positions nx3
 		self.G					= np.zeros((self.n,3))
@@ -215,6 +215,14 @@ class Robot:
 	def holdAllCb(self, msg):
 		self.cmd = self.cmd.fromkeys(self.cmd, 0)
 		self.cmd["Hold"] = 1
+
+	def posctlCb(self, msg):
+		self.cmd = self.cmd.fromkeys(self.cmd, 0)
+		self.cmd["POSCTL"] = 1
+
+	def posctlAllCb(self, msg):
+		self.cmd = self.cmd.fromkeys(self.cmd, 0)
+		self.cmd["POSCTL"] = 1
 
 	def goCb(self, msg):
 		self.cmd = self.cmd.fromkeys(self.cmd, 0)
@@ -366,6 +374,8 @@ def main():
 	rospy.Subscriber('/disarm', Empty, R.disArmAllCb)
 	rospy.Subscriber('hold', Empty, R.holdCb)
 	rospy.Subscriber('/hold', Empty, R.holdAllCb)
+	rospy.Subscriber('posctl', Empty, R.posctlCb)
+	rospy.Subscriber('/posctl', Empty, R.posctlAllCb)
 
 	rospy.Subscriber('/go', Empty, R.goCb)
 
@@ -407,14 +417,20 @@ def main():
 
 		if R.cmd["Disarm"]:
 			R.cmd = R.cmd.fromkeys(R.cmd, 0)
+			R.t0_trigger = False
 			mode.setDisarm()
 			rospy.logwarn("Robot %s is Disarming", R.myID)
 
 		if R.cmd["Land"]:
 			R.cmd = R.cmd.fromkeys(R.cmd, 0)
 			mode.setAutoLandMode()
-			go_sig = False
+			R.t0_trigger = False
 			rospy.logwarn("Robot %s is landing", R.myID)
+
+		if R.cmd["POSCTL"]:
+			R.cmd = R.cmd.fromkeys(R.cmd, 0)
+			R.t0_trigger = False
+			mode.setPositionMode()
 
 		if R.cmd["Takeoff"]:
 			R.mavros_sp.position.z = R.GND_ALT + R.TOALT
