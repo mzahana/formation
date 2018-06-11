@@ -286,8 +286,8 @@ def main():
 	rospy.Subscriber(M.r_loc_topic_names[5], RobotState, M.r5Cb)
 
 	# Subscriber of origin/east coordinates
-	ropsy.Subscriber("/setOrigin", Point, R.originCb)
-	ropsy.Subscriber("/setEast", Point, R.eastCb)
+	ropsy.Subscriber("/setOrigin", Point, M.originCb)
+	ropsy.Subscriber("/setEast", Point, M.eastCb)
 
 	# Subscriber: start flag
 	rospy.Subscriber("/start", Empty, M.startCb)
