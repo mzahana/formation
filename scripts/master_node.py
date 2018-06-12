@@ -289,7 +289,7 @@ def main():
 	rospy.Subscriber(M.r_loc_topic_names[5], RobotState, M.r5Cb)
 
 	# Subscriber nRobots
-	rospy.Subscriber("/setnRobots", Int32, M.setnRobots)
+	rospy.Subscriber("/setnRobots", Int32, M.setnRobotsCb)
 
 	# Subscriber of origin/east coordinates
 	rospy.Subscriber("/setOrigin", Point, M.originCb)

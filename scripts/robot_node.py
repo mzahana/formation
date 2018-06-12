@@ -361,7 +361,7 @@ def main():
 	rospy.Subscriber("mavros/local_position/pose", PoseStamped, R.localPoseCb)
 
 	# Subscriber nRobots
-	rospy.Subscriber("/setnRobots", Int32, R.setnRobots)
+	rospy.Subscriber("/setnRobots", Int32, R.setnRobotsCb)
 
 	# Subscriber of origin/east coordinates
 	rospy.Subscriber("/setOrigin", Point, R.originCb)
