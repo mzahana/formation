@@ -1,6 +1,6 @@
 std_msgs/Header header
 
-Int32 robot_id
+std_msgs/Int32 robot_id
 
 # completion time
 float32 tf
