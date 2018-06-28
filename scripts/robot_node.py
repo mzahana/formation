@@ -7,7 +7,7 @@ import numpy as np
 from subprocess import call
 
 # msgs
-from formation.msg import RobotState, FormationPositions
+from formation.msg import RobotState, FormationPositions, RobotTarget
 from std_msgs.msg import Empty, Int32
 from geometry_msgs.msg import Point, PointStamped, PoseStamped
 from sensor_msgs.msg import NavSatFix
@@ -149,6 +149,29 @@ class Robot:
 		self.t0_trigger			= False
 
 	#################### Calbacks #####################
+
+	def robot_target_Cb(self):
+		if msg.robot_id == self.myID:
+			self.tf = msg.tf
+			rospy.logwarn("[Robot %s]: Received its goal", self.myID)
+			self.my_goal = np.array([msg.goal.x, msg.goal.y, msg.goal.z])
+			self.robot_msg.received_goal = True
+
+			# set start position
+			if self.INDOOR:
+				x = self.local_pose.pose.position.x
+				y = self.local_pose.pose.position.y
+				z = self.local_pose.pose.position.z
+			else:
+				x,y,z = self.geo2desiredENU(self.curr_lat, self.curr_lon, self.gpsAlt)
+
+			self.start_pos = np.array([x,y,z])
+
+			# reset flag
+			self.robot_msg.arrived = False
+
+			# reset go_sig
+			self.go_sig				= False
 
 	def formationCb(self, msg):
 		self.tf = msg.tf
@@ -384,6 +407,8 @@ def main():
 	rospy.Subscriber('/go', Empty, R.goCb)
 
 	rospy.Subscriber('/formation', FormationPositions, R.formationCb)
+
+	rospy.Subscriber('robot_target', RobotTarget, R.robot_target_Cb)
 
 	rospy.Subscriber('shutdown', Empty, R.shutdownCb)
 	rospy.Subscriber('/shutdown', Empty, R.shutdownCb)
