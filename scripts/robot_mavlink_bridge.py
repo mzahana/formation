@@ -3,7 +3,7 @@
 import rospy
 
 from formation.msg import RobotState, FormationPositions, RobotTarget
-import pymavlinik.mavutil as mavutil
+import pymavlink.mavutil as mavutil
 from std_msgs.msg import Empty, Int32
 from geometry_msgs.msg import Point
 
@@ -109,7 +109,7 @@ class RobotBridge():
 						if msg.param2 == self.MASTER_CMD_LAND:
 							empty_msg = Empty()
 							self.land_pub.publish(empty_msg)
-						if msg.param2 == self.MASTER_CMD_HOLD
+						if msg.param2 == self.MASTER_CMD_HOLD:
 							empty_msg = Empty()
 							self.hold_pub.publish(empty_msg)
 						if msg.param2 == self.MASTER_CMD_SHUTDOWN:

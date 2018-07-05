@@ -5,7 +5,7 @@ import rospy
 from std_msgs.msg import Empty, Int32
 from geometry_msgs.msg import Point
 from formation.msg import RobotState, FormationPositions, RobotTarget
-import pymavlinik.mavutil as mavutil
+import pymavlink.mavutil as mavutil
 
 from threading import Thread
 
