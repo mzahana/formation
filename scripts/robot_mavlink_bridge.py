@@ -91,7 +91,7 @@ class RobotBridge():
 		# This will be running in a Thread not as ROS callback
 		cmd = mavutil.mavlink.MAV_CMD_USER_1
 		while(True):
-			msg = mav.recv_match(blocking=True)
+			msg = self.mav.recv_match(blocking=True)
 			if msg is not None:
 				if msg.get_srcSystem() == self.master_sys_id:
 					# make sure it's the right mavlink message and directed to this robot or all robots

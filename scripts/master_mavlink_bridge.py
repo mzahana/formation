@@ -71,7 +71,7 @@ class MasterBridge():
 
 		while (True):
 			cmd = mavutil.mavlink.MAV_CMD_USER_1
-			msg = mav.recv_match(blocking=True)
+			msg = self.mav.recv_match(blocking=True)
 			if msg is not None:
 				cmd_type = msg.get_type()
 				src_sys = msg.get_srcSystem()
