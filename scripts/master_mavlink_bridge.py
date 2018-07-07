@@ -64,7 +64,6 @@ class MasterBridge():
 		rospy.Subscriber('/land_robot', Int32, self.landCb)
 		rospy.Subscriber('/hold_robot', Int32, self.holdCb)
 		rospy.Subscriber('/posctl_robot', Int32, self.posctlCb)
-		rospy.Subscriber('/posctl_robot', Int32, self.posctlCb)
 
 		rospy.Subscriber('/formation', FormationPositions, self.formationCb)
 		rospy.Subscriber('/go', Empty, self.goCb)
