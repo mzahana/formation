@@ -68,6 +68,7 @@ class RobotBridge():
 		self.tko_pub = rospy.Publisher("/takeoff", Empty, queue_size=1)
 		self.land_pub = rospy.Publisher("/land", Empty, queue_size=1)
 		self.hold_pub = rospy.Publisher("/hold", Empty, queue_size=1)
+		self.posctl_pub = rospy.Publisher("/posctl", Empty, queue_size=1)
 		self.shutdown_pub = rospy.Publisher("/shutdown", Empty, queue_size=1)
 		self.reboot_pub = rospy.Publisher("/reboot", Empty, queue_size=1)
 		self.go_pub = rospy.Publisher("/go", Empty, queue_size=1)
@@ -146,6 +147,18 @@ class RobotBridge():
 							# Send ACK to MASTER
 							p1 = self.MASTER_CMD_ACK
 							p2 = self.MASTER_CMD_LAND
+							p3, p4, p5, p6, p7 = 0, 0, 0, 0, 0
+							tgt_comp_id = 0
+							self.mav.mav.command_long_send(self.master_sys_id, tgt_comp_id, mavutil.mavlink.MAV_CMD_USER_1, 0, p1, p2, p3, p4, p5, p6, p7)
+
+						if msg.param2 == self.MASTER_CMD_POSCTL:
+							if self.DEBUG:
+								rospy.logwarn("[Robot %s]: Got POSCTL CMD", self.myID)
+							empty_msg = Empty()
+							self.posctl_pub.publish(empty_msg)
+							# Send ACK to MASTER
+							p1 = self.MASTER_CMD_ACK
+							p2 = self.MASTER_CMD_POSCTL
 							p3, p4, p5, p6, p7 = 0, 0, 0, 0, 0
 							tgt_comp_id = 0
 							self.mav.mav.command_long_send(self.master_sys_id, tgt_comp_id, mavutil.mavlink.MAV_CMD_USER_1, 0, p1, p2, p3, p4, p5, p6, p7)
