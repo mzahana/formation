@@ -89,7 +89,7 @@ class RobotBridge():
 		p5 = msg.point.x
 		p6 = msg.point.y
 		p7 = msg.point.z
-		self.mav.mav.command_long_send(self.tgt_sys, tgt_comp_id, mavutil.mavlink.MAV_CMD_USER_1, 0, p1, p2, p3, p4, p5, p6, p7)
+		self.mav.mav.command_long_send(self.master_sys_id, tgt_comp_id, mavutil.mavlink.MAV_CMD_USER_1, 0, p1, p2, p3, p4, p5, p6, p7)
 
 	def recvCb(self):
 		# This will be running in a Thread not as ROS callback
