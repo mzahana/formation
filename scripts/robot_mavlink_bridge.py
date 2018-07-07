@@ -37,7 +37,7 @@ class RobotBridge():
 
 		self.master_sys_id			= rospy.get_param("master_sys_id", 255)
 		if self.DEBUG:
-			rospy.logwarn("[Robot %s]: Master MAVLink ID is %s", self.myID, self,master_sys_id)
+			rospy.logwarn("[Robot %s]: Master MAVLink ID is %s", self.myID, self.master_sys_id)
 
 		# Disctionary to hold boolean status of commands
 		self.cmd					= {"Takeoff": 0, "Land": 0, "Arm": 0, "Disarm": 0, "Hold": 0, "GO": 0, "POSCTL": 0}
