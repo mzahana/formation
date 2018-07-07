@@ -57,6 +57,7 @@ class RobotBridge():
 		self.MASTER_CMD_GO			= 13
 		self.MASTER_CMD_GOAL		= 14
 		self.MASTER_CMD_SET_TOALT	= 15
+		self.MASTER_CMD_ACK			= 16
 
 		# Subscribers
 		rospy.Subscriber('state', RobotState, self.stateCb)
@@ -106,48 +107,96 @@ class RobotBridge():
 								rospy.logwarn("[Robot %s]: Got Arm CMD", self.myID)
 							empty_msg = Empty()
 							self.arm_pub.publish(empty_msg)
+							# Send ACK to MASTER
+							p1 = self.MASTER_CMD_ACK
+							p2 = self.MASTER_CMD_ARM
+							p3, p4, p5, p6, p7 = 0, 0, 0, 0, 0
+							tgt_comp_id = 0
+							self.mav.mav.command_long_send(self.master_sys_id, tgt_comp_id, mavutil.mavlink.MAV_CMD_USER_1, 0, p1, p2, p3, p4, p5, p6, p7)
 
 						if msg.param2 == self.MASTER_CMD_ARM and msg.param3 == 0:
 							if self.DEBUG:
 								rospy.logwarn("[Robot %s]: Got Disarm CMD", self.myID)
 							empty_msg = Empty()
 							self.disarm_pub.publish(empty_msg)
+							# Send ACK to MASTER
+							p1 = self.MASTER_CMD_ACK
+							p2 = self.MASTER_CMD_ARM
+							p3, p4, p5, p6, p7 = 0, 0, 0, 0, 0
+							tgt_comp_id = 0
+							self.mav.mav.command_long_send(self.master_sys_id, tgt_comp_id, mavutil.mavlink.MAV_CMD_USER_1, 0, p1, p2, p3, p4, p5, p6, p7)
 
 						if msg.param2 == self.MASTER_CMD_TKO:
 							if self.DEBUG:
 								rospy.logwarn("[Robot %s]: Got Takeoff CMD", self.myID)
 							empty_msg = Empty()
 							self.tko_pub.publish(empty_msg)
+							# Send ACK to MASTER
+							p1 = self.MASTER_CMD_ACK
+							p2 = self.MASTER_CMD_TKO
+							p3, p4, p5, p6, p7 = 0, 0, 0, 0, 0
+							tgt_comp_id = 0
+							self.mav.mav.command_long_send(self.master_sys_id, tgt_comp_id, mavutil.mavlink.MAV_CMD_USER_1, 0, p1, p2, p3, p4, p5, p6, p7)
 
 						if msg.param2 == self.MASTER_CMD_LAND:
 							if self.DEBUG:
 								rospy.logwarn("[Robot %s]: Got Land CMD", self.myID)
 							empty_msg = Empty()
 							self.land_pub.publish(empty_msg)
+							# Send ACK to MASTER
+							p1 = self.MASTER_CMD_ACK
+							p2 = self.MASTER_CMD_LAND
+							p3, p4, p5, p6, p7 = 0, 0, 0, 0, 0
+							tgt_comp_id = 0
+							self.mav.mav.command_long_send(self.master_sys_id, tgt_comp_id, mavutil.mavlink.MAV_CMD_USER_1, 0, p1, p2, p3, p4, p5, p6, p7)
 
 						if msg.param2 == self.MASTER_CMD_HOLD:
 							if self.DEBUG:
 								rospy.logwarn("[Robot %s]: Got Hold CMD", self.myID)
 							empty_msg = Empty()
 							self.hold_pub.publish(empty_msg)
+							# Send ACK to MASTER
+							p1 = self.MASTER_CMD_ACK
+							p2 = self.MASTER_CMD_HOLD
+							p3, p4, p5, p6, p7 = 0, 0, 0, 0, 0
+							tgt_comp_id = 0
+							self.mav.mav.command_long_send(self.master_sys_id, tgt_comp_id, mavutil.mavlink.MAV_CMD_USER_1, 0, p1, p2, p3, p4, p5, p6, p7)
 
 						if msg.param2 == self.MASTER_CMD_SHUTDOWN:
 							if self.DEBUG:
 								rospy.logwarn("[Robot %s]: Got Shutdown CMD", self.myID)
 							empty_msg = Empty()
 							self.shutdown_pub.publish(empty_msg)
+							# Send ACK to MASTER
+							p1 = self.MASTER_CMD_ACK
+							p2 = self.MASTER_CMD_SHUTDOWN
+							p3, p4, p5, p6, p7 = 0, 0, 0, 0, 0
+							tgt_comp_id = 0
+							self.mav.mav.command_long_send(self.master_sys_id, tgt_comp_id, mavutil.mavlink.MAV_CMD_USER_1, 0, p1, p2, p3, p4, p5, p6, p7)
 
 						if msg.param2 == self.MASTER_CMD_REBOOT:
 							if self.DEBUG:
 								rospy.logwarn("[Robot %s]: Got Reboot CMD", self.myID)
 							empty_msg = Empty()
 							self.reboot_pub.publish(empty_msg)
+							# Send ACK to MASTER
+							p1 = self.MASTER_CMD_ACK
+							p2 = self.MASTER_CMD_REBOOT
+							p3, p4, p5, p6, p7 = 0, 0, 0, 0, 0
+							tgt_comp_id = 0
+							self.mav.mav.command_long_send(self.master_sys_id, tgt_comp_id, mavutil.mavlink.MAV_CMD_USER_1, 0, p1, p2, p3, p4, p5, p6, p7)
 
 						if msg.param2 == self.MASTER_CMD_GO:
 							if self.DEBUG:
 								rospy.logwarn("[Robot %s]: Got Go CMD", self.myID)
 							empty_msg = Empty()
 							self.go_pub.publish(empty_msg)
+							# Send ACK to MASTER
+							p1 = self.MASTER_CMD_ACK
+							p2 = self.MASTER_CMD_GO
+							p3, p4, p5, p6, p7 = 0, 0, 0, 0, 0
+							tgt_comp_id = 0
+							self.mav.mav.command_long_send(self.master_sys_id, tgt_comp_id, mavutil.mavlink.MAV_CMD_USER_1, 0, p1, p2, p3, p4, p5, p6, p7)
 
 						if msg.param2 == self.MASTER_CMD_SET_nROBOTS:
 							if self.DEBUG:
@@ -155,6 +204,12 @@ class RobotBridge():
 							int_msg = Int32()
 							int_msg.data = msg.param3
 							self.nR_pub.publish(int_msg)
+							# Send ACK to MASTER
+							p1 = self.MASTER_CMD_ACK
+							p2 = self.MASTER_CMD_SET_nROBOTS
+							p3, p4, p5, p6, p7 = 0, 0, 0, 0, 0
+							tgt_comp_id = 0
+							self.mav.mav.command_long_send(self.master_sys_id, tgt_comp_id, mavutil.mavlink.MAV_CMD_USER_1, 0, p1, p2, p3, p4, p5, p6, p7)
 
 						if msg.param2 == self.MASTER_CMD_SET_ORIGIN:
 							if self.DEBUG:
@@ -164,6 +219,12 @@ class RobotBridge():
 							point_msg.y = msg.param4
 							point_msg.z = msg.param5
 							self.setOrigin_pub.publish(point_msg)
+							# Send ACK to MASTER
+							p1 = self.MASTER_CMD_ACK
+							p2 = self.MASTER_CMD_SET_ORIGIN
+							p3, p4, p5, p6, p7 = 0, 0, 0, 0, 0
+							tgt_comp_id = 0
+							self.mav.mav.command_long_send(self.master_sys_id, tgt_comp_id, mavutil.mavlink.MAV_CMD_USER_1, 0, p1, p2, p3, p4, p5, p6, p7)
 
 						if msg.param2 == self.MASTER_CMD_SET_EAST:
 							if self.DEBUG:
@@ -173,6 +234,12 @@ class RobotBridge():
 							point_msg.y = msg.param4
 							point_msg.z = msg.param5
 							self.setEast_pub.publish(point_msg)
+							# Send ACK to MASTER
+							p1 = self.MASTER_CMD_ACK
+							p2 = self.MASTER_CMD_SET_EAST
+							p3, p4, p5, p6, p7 = 0, 0, 0, 0, 0
+							tgt_comp_id = 0
+							self.mav.mav.command_long_send(self.master_sys_id, tgt_comp_id, mavutil.mavlink.MAV_CMD_USER_1, 0, p1, p2, p3, p4, p5, p6, p7)
 
 						if msg.param2 == self.MASTER_CMD_GOAL and msg.target_system == self.my_mavlink_ID:
 							if self.DEBUG:
@@ -185,6 +252,12 @@ class RobotBridge():
 							r_msg.tf     = msg.param6
 							r_msg.header.stamp = rospy.Time.now()
 							self.goal_pub.publish(r_msg)
+							# Send ACK to MASTER
+							p1 = self.MASTER_CMD_ACK
+							p2 = self.MASTER_CMD_GOAL
+							p3, p4, p5, p6, p7 = 0, 0, 0, 0, 0
+							tgt_comp_id = 0
+							self.mav.mav.command_long_send(self.master_sys_id, tgt_comp_id, mavutil.mavlink.MAV_CMD_USER_1, 0, p1, p2, p3, p4, p5, p6, p7)
 
 						if msg.param2 == self.MASTER_CMD_SET_TOALT:
 							if self.DEBUG:
@@ -192,6 +265,12 @@ class RobotBridge():
 							r_msg = Float32()
 							r_msg.data = msg.param3
 							self.toalt_pub.publish(r_msg)
+							# Send ACK to MASTER
+							p1 = self.MASTER_CMD_ACK
+							p2 = self.MASTER_CMD_SET_TOALT
+							p3, p4, p5, p6, p7 = 0, 0, 0, 0, 0
+							tgt_comp_id = 0
+							self.mav.mav.command_long_send(self.master_sys_id, tgt_comp_id, mavutil.mavlink.MAV_CMD_USER_1, 0, p1, p2, p3, p4, p5, p6, p7)
 
 				else:
 					rospy.logwarn("Got msg from non-master: %s", msg.get_srcSystem())

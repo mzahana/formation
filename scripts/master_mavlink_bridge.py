@@ -46,6 +46,10 @@ class MasterBridge():
 		self.MASTER_CMD_GO			= 13
 		self.MASTER_CMD_GOAL		= 14
 		self.MASTER_CMD_SET_TOALT	= 15
+		self.MASTER_CMD_ACK			= 16
+
+		# CMD string
+		self.CMD_STRING				= {3:'MASTER_CMD_ARM', 4:'MASTER_CMD_TKO', 5:'MASTER_CMD_LAND', 6:'MASTER_CMD_POSCTL', 7:'MASTER_CMD_HOLD', 8:'MASTER_CMD_SHUTDOWN', 9:'MASTER_CMD_REBOOT', 10:'MASTER_CMD_SET_ORIGIN', 11:'MASTER_CMD_SET_EAST', 12:'MASTER_CMD_SET_nROBOTS', 13:'MASTER_CMD_GO', 14:'MASTER_CMD_GOAL', 15:'MASTER_CMD_SET_TOALT'}
 
 		# Topics names of robots locations in local defined ENU coordiantes
 		self.r_loc_topic_names = []
@@ -86,20 +90,25 @@ class MasterBridge():
 				cmd_type = msg.get_type()
 				src_sys = msg.get_srcSystem()
 				msg_tgt = msg.target_system
-				if cmd_type == "COMMAND_LONG" and src_sys > 0 and src_sys <= self.n and msg.command == cmd and msg_tgt == self.master_sys_id and msg.param1 == self.ROBOT_STATE:
-					if self.DEBUG:
-						rospy.logwarn("[Master]: Received ROBOT_STATE from Robot %s", src_sys-1)
-					state_msg = RobotState()
-					state_msg.header.stamp		= rospy.Time.now()
-					state_msg.received_goal		= msg.param2
-					state_msg.mission_started	= msg.param3
-					state_msg.arrived			= msg.param4
-					state_msg.point.x			= msg.param5
-					state_msg.point.y			= msg.param6
-					state_msg.point.z			= msg.param7
+				if cmd_type == "COMMAND_LONG" and src_sys > 0 and src_sys <= self.n and msg.command == cmd and msg_tgt == self.master_sys_id:
 
-					# publish msg to ROS
-					self.robot_state_pub_list[src_sys-1].publish(state_msg)
+					if msg.param1 == self.ROBOT_STATE:
+						if self.DEBUG:
+							rospy.logwarn("[Master]: Received ROBOT_STATE from Robot %s", src_sys-1)
+						state_msg = RobotState()
+						state_msg.header.stamp		= rospy.Time.now()
+						state_msg.received_goal		= msg.param2
+						state_msg.mission_started	= msg.param3
+						state_msg.arrived			= msg.param4
+						state_msg.point.x			= msg.param5
+						state_msg.point.y			= msg.param6
+						state_msg.point.z			= msg.param7
+
+						# publish msg to ROS
+						self.robot_state_pub_list[src_sys-1].publish(state_msg)
+
+					if msg.param1 == self.MASTER_CMD_ACK:
+						rospy.logwarn("[Master]: Got acknowledgment of %s from robot %s", self.CMD_STRING[msg.param2], src_sys-1)
 
 				else:
 					if self.DEBUG:
