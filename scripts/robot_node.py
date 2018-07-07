@@ -8,7 +8,7 @@ from subprocess import call
 
 # msgs
 from formation.msg import RobotState, FormationPositions, RobotTarget
-from std_msgs.msg import Empty, Int32
+from std_msgs.msg import Empty, Int32, float32
 from geometry_msgs.msg import Point, PointStamped, PoseStamped
 from sensor_msgs.msg import NavSatFix
 from mavros_msgs.msg import *
@@ -18,6 +18,10 @@ from mavros_msgs.srv import *
 from math import atan2, cos, sin
 
 import time
+
+# to get ROS package path
+import rospkg
+rospack = rospkg.RosPack()
 
 class FcuModes:
 	def __init__(self):
@@ -274,20 +278,91 @@ class Robot:
 		self.curr_z_enu = msg.pose.position.z
 
 	def setnRobotsCb(self, msg):
-		self.n = msg.data
+		pkg_path = rospack.get_path('formation')
+		file_path = pkg_path+'/config/params.yaml'
+		f = open(file_path,"r")
+		lines = f.readlines()
+		f.close()
+		f = open(file_path,"w")
+
+		for line in lines:
+		    if 'nRobots' in line:
+		        newline = 'nRobots: '+str(msg.data)+'\n'
+		        f.write(newline)
+		    else:
+		        f.write(line)
+
+		f.close()
+
+		rospy.logwarn("Restart Mster nodes and reboot robots to take effect.")
 
 	def originCb(self, msg):
-			self.origin[0] = msg.x
-			self.origin[1] = msg.y
-			self.h0 = msg.z
+		self.origin[0] = msg.x
+		self.origin[1] = msg.y
+		self.h0 = msg.z
 
-			self.compute_local_roation()
+		self.compute_local_roation()
+
+		# overright paramter in the /config/params.yaml
+		pkg_path = rospack.get_path('formation')
+		file_path = pkg_path+'/config/params.yaml'
+		f = open(file_path,"r")
+		lines = f.readlines()
+		f.close()
+		f = open(file_path,"w")
+
+		for line in lines:
+		    if 'origin' in line:
+		        newline = 'origin: ['+str(msg.x)+', '+str(msg.y)+']\n'
+		        f.write(newline)
+		    else:
+		        f.write(line)
+
+		f.close()
 
 	def eastCb(self, msg):
-			self.east[0] = msg.x
-			self.east[1] = msg.y
+		self.east[0] = msg.x
+		self.east[1] = msg.y
 
-			self.compute_local_roation()
+		self.compute_local_roation()
+
+		# overright paramter in the /config/params.yaml
+		pkg_path = rospack.get_path('formation')
+		file_path = pkg_path+'/config/params.yaml'
+		f = open(file_path,"r")
+		lines = f.readlines()
+		f.close()
+		f = open(file_path,"w")
+
+		for line in lines:
+		    if 'east' in line:
+		        newline = 'east: ['+str(msg.x)+', '+str(msg.y)+']\n'
+		        f.write(newline)
+		    else:
+		        f.write(line)
+
+		f.close()
+
+	def setTOALTCb(self, msg):
+		if msg is not None:
+			self.TOALT = msg.data
+
+			# overright paramter in the /config/params.yaml
+			pkg_path = rospack.get_path('formation')
+			file_path = pkg_path+'/config/params.yaml'
+			f = open(file_path,"r")
+			lines = f.readlines()
+			f.close()
+			f = open(file_path,"w")
+
+			for line in lines:
+			    if 'TOALT' in line:
+			        newline = 'TOALT: '+str(msg.data)+'\n'
+			        f.write(newline)
+			    else:
+			        f.write(line)
+
+			f.close()
 
 	def shutdownCb(self, msg):
 		call("sudo shutdown -h now", shell=True)
@@ -390,6 +465,9 @@ def main():
 	rospy.Subscriber("/setOrigin", Point, R.originCb)
 	rospy.Subscriber("/setEast", Point, R.eastCb)
 
+	# Subscriber: set TOALT parameter
+	rospy.Subscriber("/setTOALT", float32, R.setTOALTCb)
+
 	# Subscribers: Commands
 	rospy.Subscriber('takeoff', Empty, R.takeoffCb)
 	rospy.Subscriber('/takeoff', Empty, R.takeoffAllCb)
@@ -487,15 +565,18 @@ def main():
 			t = time.time()
 			R.next_sp(t-t0)
 			R.desiredENU2localSp(R.target_pos[0], R.target_pos[1], R.target_pos[2])
+			R.robot_msg.mission_started = True
 
 			if np.linalg.norm(R.my_goal - R.current_pos) < R.dist_TH:
 				R.cmd = R.cmd.fromkeys(R.cmd, 0)
 				R.robot_msg.received_goal = False
 				R.robot_msg.arrived = True
+				R.robot_msg.mission_started = False
 		elif R.cmd["GO"] and (not R.robot_msg.received_goal or R.robot_msg.arrived):
 			R.cmd = R.cmd.fromkeys(R.cmd, 0)
 			rospy.logwarn("[Robot %s]: Not executing GO signal. Either Goal is not recieved or already arrived", R.myID)
 
+		R.robot_msg.robot_id = R.myID
 		R.mavros_sp.header.stamp = rospy.Time.now()
 		R.robot_msg.header.stamp = rospy.Time.now()
 		setp_pub.publish(R.mavros_sp)

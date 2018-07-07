@@ -5,7 +5,7 @@ nRobots: 6
 indoor: False
 
 # Robot's radius
-R: 0.5
+robot_radius: 0.5
 
 # maximum robot's velocity [m/s]
 vmax: 2.0

@@ -26,12 +26,16 @@ from scipy.spatial import distance
 # pip install lap
 from lap import lapjv
 
+# to get ROS package path
+import rospkg
+rospack = rospkg.RosPack()
+
 class Mission:
 	def __init__(self):
 		# number of robots
 		self.n 			= rospy.get_param("nRobots", 5)
 		# robot's radius
-		self.R			= rospy.get_param("R", 0.5)
+		self.R			= rospy.get_param("robot_radius", 0.5)
 		# safety distance
 		self.delta		= 2.0*(2**0.5)*self.R
 		# max robot's velocity
@@ -75,6 +79,9 @@ class Mission:
 
 		# if all each robot received assigned goal
 		self.received_goals = self.n*[False]
+
+		# Falgs to check if all robots started mission at the same time
+		self.robots_started_mission = self.n*[False]
 
 		# True if all robots arrived at their goals
 		# True if all elements in self.arrival_state are True
@@ -171,18 +178,17 @@ class Mission:
 
 		self.shape_is_complete = False
 
-	################# Callbacks
+	################# Callbacks ###############
 
-	def setnRobotsCb(self, msg):
-		self.n = msg.data
-
-	def originCb(self, msg):
-			self.origin[0] = msg.x
-			self.origin[1] = msg.y
-
-	def eastCb(self, msg):
-			self.east[0] = msg.x
-			self.east[1] = msg.y
+	############### Robots state callback ###############
+	def robotStateCb(self, msg):
+		if msg is not None:
+			i=msg.robot_id
+			p = np.array([msg.point.x, msg.point.y, msg.point.z])
+			self.current_P[i,:] = p
+			self.arrival_state[i] = msg.arrived
+			self.received_goals[i] = msg.received_goal
+			self.robots_started_mission[i] = msg.mission_started
 
 	def r0Cb(self, msg):
 		i=0
@@ -190,6 +196,7 @@ class Mission:
 		self.current_P[i,:] = p
 		self.arrival_state[i] = msg.arrived
 		self.received_goals[i] = msg.received_goal
+		self.robots_started_mission[i] = msg.mission_started
 
 	def r1Cb(self, msg):
 		i=1
@@ -197,6 +204,7 @@ class Mission:
 		self.current_P[i,:] = p
 		self.arrival_state[i] = msg.arrived
 		self.received_goals[i] = msg.received_goal
+		self.robots_started_mission[i] = msg.mission_started
 
 	def r2Cb(self, msg):
 		i=2
@@ -204,6 +212,7 @@ class Mission:
 		self.current_P[i,:] = p
 		self.arrival_state[i] = msg.arrived
 		self.received_goals[i] = msg.received_goal
+		self.robots_started_mission[i] = msg.mission_started
 		
 	def r3Cb(self, msg):
 		i=3
@@ -211,6 +220,7 @@ class Mission:
 		self.current_P[i,:] = p
 		self.arrival_state[i] = msg.arrived
 		self.received_goals[i] = msg.received_goal
+		self.robots_started_mission[i] = msg.mission_started
 
 	def r4Cb(self, msg):
 		i=4
@@ -218,6 +228,7 @@ class Mission:
 		self.current_P[i,:] = p
 		self.arrival_state[i] = msg.arrived
 		self.received_goals[i] = msg.received_goal
+		self.robots_started_mission[i] = msg.mission_started
 
 	def r5Cb(self, msg):
 		i=5
@@ -225,7 +236,91 @@ class Mission:
 		self.current_P[i,:] = p
 		self.arrival_state[i] = msg.arrived
 		self.received_goals[i] = msg.received_goal
+		self.robots_started_mission[i] = msg.mission_started
 
+	def setnRobotsCb(self, msg):
+		# NOTE: I geuss this parameter should not be redefined in mission. It only should be defined in a parameters file
+		# possible fix is to rewrite this parameter in file.
+		pkg_path = rospack.get_path('formation')
+		file_path = pkg_path+'/config/params.yaml'
+		f = open(file_path,"r")
+		lines = f.readlines()
+		f.close()
+		f = open(file_path,"w")
+
+		for line in lines:
+		    if 'nRobots' in line:
+		        newline = 'nRobots: '+str(msg.data)+'\n'
+		        f.write(newline)
+		    else:
+		        f.write(line)
+
+		f.close()
+
+		rospy.logwarn("Restart Mster nodes and reboot robots to take effect.")
+
+	def originCb(self, msg):
+		self.origin[0] = msg.x
+		self.origin[1] = msg.y
+
+		# overright paramter in the /config/params.yaml
+		pkg_path = rospack.get_path('formation')
+		file_path = pkg_path+'/config/params.yaml'
+		f = open(file_path,"r")
+		lines = f.readlines()
+		f.close()
+		f = open(file_path,"w")
+
+		for line in lines:
+		    if 'origin' in line:
+		        newline = 'origin: ['+str(msg.x)+', '+str(msg.y)+']\n'
+		        f.write(newline)
+		    else:
+		        f.write(line)
+
+		f.close()
+
+	def eastCb(self, msg):
+		self.east[0] = msg.x
+		self.east[1] = msg.y
+
+		# overright paramter in the /config/params.yaml
+		pkg_path = rospack.get_path('formation')
+		file_path = pkg_path+'/config/params.yaml'
+		f = open(file_path,"r")
+		lines = f.readlines()
+		f.close()
+		f = open(file_path,"w")
+
+		for line in lines:
+		    if 'east' in line:
+		        newline = 'east: ['+str(msg.x)+', '+str(msg.y)+']\n'
+		        f.write(newline)
+		    else:
+		        f.write(line)
+
+		f.close()
+
+	def setVmaxCb(self, msg):
+		if msg is not None:
+			self.vmax = msg.data
+
+			# overright paramter in the /config/params.yaml
+			pkg_path = rospack.get_path('formation')
+			file_path = pkg_path+'/config/params.yaml'
+			f = open(file_path,"r")
+			lines = f.readlines()
+			f.close()
+			f = open(file_path,"w")
+
+			for line in lines:
+			    if 'vmax' in line:
+			        newline = 'vmax: '+str(msg.data)+'\n'
+			        f.write(newline)
+			    else:
+			        f.write(line)
+
+			f.close()
 
 	def set_start_posCb(self):
 		"""Sets starting position from robot current position
@@ -279,6 +374,9 @@ def main():
 	rospy.logwarn("Started Master Node.")
 
 	M = Mission()
+
+	for i in range(M.n):
+		rospy.Subscriber(M.r_loc_topic_names[i], RobotState, M.robotStateCb)	
 
 	# Subscribers: Robots states
 	rospy.Subscriber(M.r_loc_topic_names[0], RobotState, M.r0Cb)
@@ -349,9 +447,11 @@ def main():
 				M.SEND_GO = True
 
 		if M.SEND_GO:
-			go_pub.publish(go_msg)
-			M.SEND_GO = False
-			M.CHECK_SHAPE = True
+			if not all(M.robots_started_mission):
+				go_pub.publish(go_msg)
+			else:
+				M.SEND_GO = False
+				M.CHECK_SHAPE = True
 
 		if M.CHECK_SHAPE:
 			if M.isFormationComplete():

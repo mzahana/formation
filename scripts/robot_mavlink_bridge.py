@@ -4,7 +4,7 @@ import rospy
 
 from formation.msg import RobotState, FormationPositions, RobotTarget
 import pymavlink.mavutil as mavutil
-from std_msgs.msg import Empty, Int32
+from std_msgs.msg import Empty, Int32, float32
 from geometry_msgs.msg import Point
 
 from threading import Thread
@@ -56,6 +56,7 @@ class RobotBridge():
 		self.MASTER_CMD_SET_nROBOTS	= 12
 		self.MASTER_CMD_GO			= 13
 		self.MASTER_CMD_GOAL		= 14
+		self.MASTER_CMD_SET_TOALT	= 15
 
 		# Subscribers
 		rospy.Subscriber('state', RobotState, self.stateCb)
@@ -73,6 +74,7 @@ class RobotBridge():
 		self.setOrigin_pub = rospy.Publisher("/setOrigin", Point, queue_size=1)
 		self.setEast_pub = rospy.Publisher("/setEast", Point, queue_size=1)
 		self.goal_pub = rospy.Publisher("robot_target", RobotTarget, queue_size=1)
+		self.toalt_pub = rospy.Publisher("/setTOALT", float32, queue_size=1)
 		
 
 	##### Callbacks ###
@@ -183,6 +185,13 @@ class RobotBridge():
 							r_msg.tf     = msg.param6
 							r_msg.header.stamp = rospy.Time.now()
 							self.goal_pub.publish(r_msg)
+
+						if msg.param2 == self.MASTER_CMD_SET_TOALT:
+							if self.DEBUG:
+								rospy.logwarn("[Robot %s]: Got set SET_TOALT CMD. TOALT=%s", self.myID, msg.param3)
+							r_msg = float32()
+							r_msg.data = msg.param3
+							self.toalt_pub.publish(r_msg)
 
 				else:
 					rospy.logwarn("Got msg from non-master: %s", msg.get_srcSystem())

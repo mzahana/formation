@@ -1,5 +1,8 @@
 std_msgs/Header header
 
+# Robot id starts from 0
+std_msgs/Int32 robot_id
+
 # if robot received its assigned goal location
 bool received_goal
 

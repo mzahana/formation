@@ -45,6 +45,7 @@ class MasterBridge():
 		self.MASTER_CMD_SET_nROBOTS	= 12
 		self.MASTER_CMD_GO			= 13
 		self.MASTER_CMD_GOAL		= 14
+		self.MASTER_CMD_SET_TOALT	= 15
 
 		# Topics names of robots locations in local defined ENU coordiantes
 		self.r_loc_topic_names = []
@@ -67,6 +68,7 @@ class MasterBridge():
 		rospy.Subscriber('/setnRobots', Int32, self.nRCb)
 		rospy.Subscriber('/setOrigin', Point, self.setOriginCb)
 		rospy.Subscriber('/setEast', Point, self.setEastCb)
+		rospy.Subscriber("/setTOALT", float32, self.setTOALTCb)
 
 
 		# Publishers
@@ -180,6 +182,19 @@ class MasterBridge():
 
 		if self.DEBUG:
 			rospy.logwarn("[Master]: sending East coordinates to all robots")
+
+	def setTOALTCb(self, msg):
+		if msg is not None:
+			r_id = 0
+			tgt_comp_id = 0
+			p1 = self.MASTER_CMD
+			p2 = self.MASTER_CMD_SET_TOALT
+			p3 = msg.data
+			p4, p5, p6, p7 = 0, 0, 0, 0
+			self.mav.mav.command_long_send(r_id, tgt_comp_id, mavutil.mavlink.MAV_CMD_USER_1, 0, p1, p2, p3, p4, p5, p6, p7)
+
+			if self.DEBUG:
+				rospy.logwarn("[Master]: sending TOALT=%s to all robots", msg.data)
 
 	def armCb(self, msg):
 		r_id = msg.data
