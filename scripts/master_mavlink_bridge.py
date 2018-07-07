@@ -14,14 +14,22 @@ from time import sleep
 class MasterBridge():
 
 	def __init__(self):
+
+		self.DEBUG					= rospy.get_param("DEBUG", False)
 		
 		self.n 						= rospy.get_param("nRobots", 5)
+		if self.DEBUG:
+			rospy.logwarn("[Master]: Got number of robots = %s", self.n)
 
 		self.master_sys_id			= rospy.get_param("master_sys_id", 255)
+		if self.DEBUG:
+			rospy.logwarn("Master MAVLink ID = %s", self.master_sys_id)
 
 		# pymavlink connection
 		self.master_udp				= rospy.get_param("master_udp", "127.0.0.1:30000")
 		self.mav					= mavutil.mavlink_connection("udpout:"+self.master_udp)
+		if self.DEBUG:
+			rospy.logwarn("Master is connected on udpout:%s", self.master_udp)
 
 		self.ROBOT_STATE			= 1
 		self.MASTER_CMD				= 2
@@ -77,6 +85,8 @@ class MasterBridge():
 				src_sys = msg.get_srcSystem()
 				msg_tgt = msg.target_system
 				if cmd_type == "COMMAND_LONG" and src_sys > 0 and src_sys <= self.n and msg.command == cmd and msg_tgt == self.master_sys_id and msg.param1 == self.ROBOT_STATE:
+					if self.DEBUG:
+						rospy.logwarn("[Master]: Received ROBOT_STATE from Robot %s", src_sys-1)
 					state_msg = RobotState()
 					state_msg.header.stamp		= rospy.Time.now()
 					state_msg.received_goal		= msg.param2
@@ -88,6 +98,10 @@ class MasterBridge():
 
 					# publish msg to ROS
 					self.robot_state_pub_list[src_sys-1].publish(state_msg)
+
+				else:
+					if self.DEBUG:
+						rospy.logwarn("Received unexpected MAVLink msg of type: %s from MAVLink ID = %s", msg.get_type(), msg.get_srcSystem())
 
 			# Should we sleep before we poll the udp again?
 			sleep(0.02)
@@ -103,6 +117,9 @@ class MasterBridge():
 		p3, p4, p5, p6, p7 = 0, 0, 0, 0, 0
 		self.mav.mav.command_long_send(tgt_sys, tgt_comp_id, mavutil.mavlink.MAV_CMD_USER_1, 0, p1, p2, p3, p4, p5, p6, p7)
 
+		if self.DEBUG:
+			rospy.logwarn("[Master]: Sent MASTER_CMD_GO to all systems")
+
 	def formationCb(self, msg):
 
 		tgt_comp_id = 0
@@ -117,6 +134,9 @@ class MasterBridge():
 			p7 = 0
 			self.mav.mav.command_long_send(tgt_sys, tgt_comp_id, mavutil.mavlink.MAV_CMD_USER_1, 0, p1, p2, p3, p4, p5, p6, p7)
 
+			if self.DEBUG:
+				rospy.logwarn("[Master]: Sent formation goal to Robot %s", i)
+
 			sleep(0.01)
 
 
@@ -130,6 +150,9 @@ class MasterBridge():
 		p4, p5, p6, p7 = 0, 0, 0, 0
 		self.mav.mav.command_long_send(r_id, tgt_comp_id, mavutil.mavlink.MAV_CMD_USER_1, 0, p1, p2, p3, p4, p5, p6, p7)
 
+		if self.DEBUG:
+			rospy.logwarn("[Master]: sending number of robots = %s to all robots", nR)
+
 	def setOriginCb(self, msg):
 		r_id = 0
 		tgt_comp_id = 0
@@ -140,6 +163,9 @@ class MasterBridge():
 		p5 = msg.z
 		p6, p7 = 0, 0
 		self.mav.mav.command_long_send(r_id, tgt_comp_id, mavutil.mavlink.MAV_CMD_USER_1, 0, p1, p2, p3, p4, p5, p6, p7)
+
+		if self.DEBUG:
+			rospy.logwarn("[Master]: sending Origin coordinates to all robots")
 
 	def setEastCb(self, msg):
 		r_id = 0
@@ -152,6 +178,9 @@ class MasterBridge():
 		p6, p7 = 0, 0
 		self.mav.mav.command_long_send(r_id, tgt_comp_id, mavutil.mavlink.MAV_CMD_USER_1, 0, p1, p2, p3, p4, p5, p6, p7)
 
+		if self.DEBUG:
+			rospy.logwarn("[Master]: sending East coordinates to all robots")
+
 	def armCb(self, msg):
 		r_id = msg.data
 		tgt_comp_id = 0
@@ -160,6 +189,9 @@ class MasterBridge():
 		p3 = 1 # 1: arm, 0: disarm
 		p4, p5, p6, p7 = 0, 0, 0, 0
 		self.mav.mav.command_long_send(r_id, tgt_comp_id, mavutil.mavlink.MAV_CMD_USER_1, 0, p1, p2, p3, p4, p5, p6, p7)
+
+		if self.DEBUG:
+			rospy.logwarn("[Master]: sending CMD_ARM to all robots")
 
 	def disarmCb(self, msg):
 		r_id = msg.data
@@ -170,6 +202,9 @@ class MasterBridge():
 		p4, p5, p6, p7 = 0, 0, 0, 0
 		self.mav.mav.command_long_send(r_id, tgt_comp_id, mavutil.mavlink.MAV_CMD_USER_1, 0, p1, p2, p3, p4, p5, p6, p7)
 
+		if self.DEBUG:
+			rospy.logwarn("[Master]: sending CMD_DISARM to all robots")
+
 	def tkoCb(self, msg):
 		r_id = msg.data
 		tgt_comp_id = 0
@@ -177,6 +212,9 @@ class MasterBridge():
 		p2 = self.MASTER_CMD_TKO
 		p3, p4, p5, p6, p7 = 0, 0, 0, 0, 0
 		self.mav.mav.command_long_send(r_id, tgt_comp_id, mavutil.mavlink.MAV_CMD_USER_1, 0, p1, p2, p3, p4, p5, p6, p7)
+
+		if self.DEBUG:
+			rospy.logwarn("[Master]: sending CMD_TAKEOFF to all robots")
 
 	def landCb(self, msg):
 		r_id = msg.data
@@ -186,6 +224,9 @@ class MasterBridge():
 		p3, p4, p5, p6, p7 = 0, 0, 0, 0, 0
 		self.mav.mav.command_long_send(r_id, tgt_comp_id, mavutil.mavlink.MAV_CMD_USER_1, 0, p1, p2, p3, p4, p5, p6, p7)
 
+		if self.DEBUG:
+			rospy.logwarn("[Master]: sending CMD_LAND to all robots")
+
 	def holdCb(self, msg):
 		r_id = msg.data
 		tgt_comp_id = 0
@@ -193,6 +234,9 @@ class MasterBridge():
 		p2 = self.MASTER_CMD_HOLD
 		p3, p4, p5, p6, p7 = 0, 0, 0, 0, 0
 		self.mav.mav.command_long_send(r_id, tgt_comp_id, mavutil.mavlink.MAV_CMD_USER_1, 0, p1, p2, p3, p4, p5, p6, p7)
+
+		if self.DEBUG:
+			rospy.logwarn("[Master]: sending CMD_HOLD to all robots")
 
 	def posctlCb(self, msg):
 		r_id = msg.data
@@ -202,8 +246,13 @@ class MasterBridge():
 		p3, p4, p5, p6, p7 = 0, 0, 0, 0, 0
 		self.mav.mav.command_long_send(r_id, tgt_comp_id, mavutil.mavlink.MAV_CMD_USER_1, 0, p1, p2, p3, p4, p5, p6, p7)
 
+		if self.DEBUG:
+			rospy.logwarn("[Master]: sending CMD_POSCTL to all robots")
+
 def main():
 	rospy.init_node('master_mavlink_node', anonymous=True)
+
+	ropsy.logwarn("Starting master_mavlink_node")
 
 	M = MasterBridge()
 

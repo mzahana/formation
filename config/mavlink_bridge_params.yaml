@@ -1,0 +1,4 @@
+master_sys_id: 255
+
+master_udp: 30000
+robot_udp: 30000

@@ -36,6 +36,8 @@ class RobotBridge():
 		self.mav					= mavutil.mavlink_connection("udpin:"+self.robot_udp, source_system=self.my_mavlink_ID)
 
 		self.master_sys_id			= rospy.get_param("master_sys_id", 255)
+		if self.DEBUG:
+			rospy.logwarn("[Robot %s]: Master MAVLink ID is %s", self.myID, self,master_sys_id)
 
 		# Disctionary to hold boolean status of commands
 		self.cmd					= {"Takeoff": 0, "Land": 0, "Arm": 0, "Disarm": 0, "Hold": 0, "GO": 0, "POSCTL": 0}
@@ -98,46 +100,81 @@ class RobotBridge():
 					if msg.get_type() == "COMMAND_LONG" and msg.command == cmd and (msg.target_system == self.my_mavlink_ID or msg.target_system == 0) and msg.param1 == self.MASTER_CMD:
 						# message parsing: param1 is used to differntiate between ROBOT_STATE and MASTER_CMD
 						if msg.param2 == self.MASTER_CMD_ARM and msg.param3 == 1:
+							if self.DEBUG:
+								rospy.logwarn("[Robot %s]: Got Arm CMD", self.myID)
 							empty_msg = Empty()
 							self.arm_pub.publish(empty_msg)
+
 						if msg.param2 == self.MASTER_CMD_ARM and msg.param3 == 0:
+							if self.DEBUG:
+								rospy.logwarn("[Robot %s]: Got Disarm CMD", self.myID)
 							empty_msg = Empty()
 							self.disarm_pub.publish(empty_msg)
+
 						if msg.param2 == self.MASTER_CMD_TKO:
+							if self.DEBUG:
+								rospy.logwarn("[Robot %s]: Got Takeoff CMD", self.myID)
 							empty_msg = Empty()
 							self.tko_pub.publish(empty_msg)
+
 						if msg.param2 == self.MASTER_CMD_LAND:
+							if self.DEBUG:
+								rospy.logwarn("[Robot %s]: Got Land CMD", self.myID)
 							empty_msg = Empty()
 							self.land_pub.publish(empty_msg)
+
 						if msg.param2 == self.MASTER_CMD_HOLD:
+							if self.DEBUG:
+								rospy.logwarn("[Robot %s]: Got Hold CMD", self.myID)
 							empty_msg = Empty()
 							self.hold_pub.publish(empty_msg)
+
 						if msg.param2 == self.MASTER_CMD_SHUTDOWN:
+							if self.DEBUG:
+								rospy.logwarn("[Robot %s]: Got Shutdown CMD", self.myID)
 							empty_msg = Empty()
 							self.shutdown_pub.publish(empty_msg)
+
 						if msg.param2 == self.MASTER_CMD_REBOOT:
+							if self.DEBUG:
+								rospy.logwarn("[Robot %s]: Got Reboot CMD", self.myID)
 							empty_msg = Empty()
 							self.reboot_pub.publish(empty_msg)
+
 						if msg.param2 == self.MASTER_CMD_GO:
+							if self.DEBUG:
+								rospy.logwarn("[Robot %s]: Got Go CMD", self.myID)
 							empty_msg = Empty()
 							self.go_pub.publish(empty_msg)
+
 						if msg.param2 == self.MASTER_CMD_SET_nROBOTS:
+							if self.DEBUG:
+								rospy.logwarn("[Robot %s]: Got SET_nROBOTS= %s CMD", self.myID, msg.param3)
 							int_msg = Int32()
 							int_msg.data = msg.param3
 							self.nR_pub.publish(int_msg)
+
 						if msg.param2 == self.MASTER_CMD_SET_ORIGIN:
+							if self.DEBUG:
+								rospy.logwarn("[Robot %s]: Got SET_ORIGIN=(%s, %s) CMD", self.myID, msg.param3, msg.param4)
 							point_msg = Point()
 							point_msg.x = msg.param3
 							point_msg.y = msg.param4
 							point_msg.z = msg.param5
 							self.setOrigin_pub.publish(point_msg)
+
 						if msg.param2 == self.MASTER_CMD_SET_EAST:
+							if self.DEBUG:
+								rospy.logwarn("[Robot %s]: Got SET_EAST=(%s, %s) CMD", self.myID, msg.param3, msg.param4)
 							point_msg = Point()
 							point_msg.x = msg.param3
 							point_msg.y = msg.param4
 							point_msg.z = msg.param5
 							self.setEast_pub.publish(point_msg)
+
 						if msg.param2 == self.MASTER_CMD_GOAL and msg.target_system == self.my_mavlink_ID:
+							if self.DEBUG:
+								rospy.logwarn("[Robot %s]: Got GOAL=(%s, %s, %s) CMD, tf=%s", self.myID, msg.param3, msg.param4, msg.param5, msg.param6)
 							r_msg = RobotTarget()
 							r_msg.robot_id = msg.target_system
 							r_msg.goal.x = msg.param3
@@ -158,6 +195,8 @@ def main():
 	rospy.init_node('robot_mavlink_node', anonymous=True)
 
 	R = RobotBridge()
+
+	rospy.logwarn("Started robot_mavlink_node for Robot %s", R.myID)
 
 	# Run recevCb in a thread
 	recvthread = Thread(target=R.recvCb)
