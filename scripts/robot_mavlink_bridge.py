@@ -4,7 +4,7 @@ import rospy
 
 from formation.msg import RobotState, FormationPositions, RobotTarget
 import pymavlink.mavutil as mavutil
-from std_msgs.msg import Empty, Int32, float32
+from std_msgs.msg import Empty, Int32, Float32
 from geometry_msgs.msg import Point
 
 from threading import Thread
@@ -74,7 +74,7 @@ class RobotBridge():
 		self.setOrigin_pub = rospy.Publisher("/setOrigin", Point, queue_size=1)
 		self.setEast_pub = rospy.Publisher("/setEast", Point, queue_size=1)
 		self.goal_pub = rospy.Publisher("robot_target", RobotTarget, queue_size=1)
-		self.toalt_pub = rospy.Publisher("/setTOALT", float32, queue_size=1)
+		self.toalt_pub = rospy.Publisher("/setTOALT", Float32, queue_size=1)
 		
 
 	##### Callbacks ###

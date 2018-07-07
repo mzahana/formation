@@ -8,7 +8,7 @@ from subprocess import call
 
 # msgs
 from formation.msg import RobotState, FormationPositions, RobotTarget
-from std_msgs.msg import Empty, Int32, float32
+from std_msgs.msg import Empty, Int32, Float32
 from geometry_msgs.msg import Point, PointStamped, PoseStamped
 from sensor_msgs.msg import NavSatFix
 from mavros_msgs.msg import *
@@ -466,7 +466,7 @@ def main():
 	rospy.Subscriber("/setEast", Point, R.eastCb)
 
 	# Subscriber: set TOALT parameter
-	rospy.Subscriber("/setTOALT", float32, R.setTOALTCb)
+	rospy.Subscriber("/setTOALT", Float32, R.setTOALTCb)
 
 	# Subscribers: Commands
 	rospy.Subscriber('takeoff', Empty, R.takeoffCb)

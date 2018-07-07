@@ -2,7 +2,7 @@
 
 import rospy
 
-from std_msgs.msg import Empty, Int32
+from std_msgs.msg import Empty, Int32, Float32
 from geometry_msgs.msg import Point
 from formation.msg import RobotState, FormationPositions, RobotTarget
 import pymavlink.mavutil as mavutil
@@ -68,7 +68,7 @@ class MasterBridge():
 		rospy.Subscriber('/setnRobots', Int32, self.nRCb)
 		rospy.Subscriber('/setOrigin', Point, self.setOriginCb)
 		rospy.Subscriber('/setEast', Point, self.setEastCb)
-		rospy.Subscriber("/setTOALT", float32, self.setTOALTCb)
+		rospy.Subscriber("/setTOALT", Float32, self.setTOALTCb)
 
 
 		# Publishers
@@ -267,7 +267,7 @@ class MasterBridge():
 def main():
 	rospy.init_node('master_mavlink_node', anonymous=True)
 
-	ropsy.logwarn("Starting master_mavlink_node")
+	rospy.logwarn("Starting master_mavlink_node")
 
 	M = MasterBridge()
 
