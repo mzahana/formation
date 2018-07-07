@@ -189,7 +189,7 @@ class RobotBridge():
 						if msg.param2 == self.MASTER_CMD_SET_TOALT:
 							if self.DEBUG:
 								rospy.logwarn("[Robot %s]: Got set SET_TOALT CMD. TOALT=%s", self.myID, msg.param3)
-							r_msg = float32()
+							r_msg = Float32()
 							r_msg.data = msg.param3
 							self.toalt_pub.publish(r_msg)
 
