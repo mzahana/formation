@@ -65,6 +65,9 @@ class MasterBridge():
 		rospy.Subscriber('/hold_robot', Int32, self.holdCb)
 		rospy.Subscriber('/posctl_robot', Int32, self.posctlCb)
 
+		rospy.Subscriber('/shutdown_robot', Int32, self.shutdownCb)
+		rospy.Subscriber('/reboot_robot', Int32, self.rebootCb)
+
 		rospy.Subscriber('/formation', FormationPositions, self.formationCb)
 		rospy.Subscriber('/go', Empty, self.goCb)
 
@@ -214,7 +217,10 @@ class MasterBridge():
 		self.mav.mav.command_long_send(r_id, tgt_comp_id, mavutil.mavlink.MAV_CMD_USER_1, 0, p1, p2, p3, p4, p5, p6, p7)
 
 		if self.DEBUG:
-			rospy.logwarn("[Master]: sending CMD_ARM to all robots")
+			if r_id > 0:
+				rospy.logwarn("[Master]: sending CMD_ARM to robot with MAVLink ID = %s", r_id)
+			else:
+				rospy.logwarn("[Master]: sending CMD_ARM to all robots")
 
 	def disarmCb(self, msg):
 		r_id = msg.data
@@ -226,7 +232,10 @@ class MasterBridge():
 		self.mav.mav.command_long_send(r_id, tgt_comp_id, mavutil.mavlink.MAV_CMD_USER_1, 0, p1, p2, p3, p4, p5, p6, p7)
 
 		if self.DEBUG:
-			rospy.logwarn("[Master]: sending CMD_DISARM to all robots")
+			if r_id > 0:
+				rospy.logwarn("[Master]: sending CMD_DISARM to robot with MAVLink ID = %s", r_id)
+			else:
+				rospy.logwarn("[Master]: sending CMD_DISARM to all robots")
 
 	def tkoCb(self, msg):
 		r_id = msg.data
@@ -237,7 +246,10 @@ class MasterBridge():
 		self.mav.mav.command_long_send(r_id, tgt_comp_id, mavutil.mavlink.MAV_CMD_USER_1, 0, p1, p2, p3, p4, p5, p6, p7)
 
 		if self.DEBUG:
-			rospy.logwarn("[Master]: sending CMD_TAKEOFF to all robots")
+			if r_id > 0:
+				rospy.logwarn("[Master]: sending CMD_TAKEOFF to robot with MAVLink ID = %s", r_id)
+			else:
+				rospy.logwarn("[Master]: sending CMD_TAKEOFF to all robots")
 
 	def landCb(self, msg):
 		r_id = msg.data
@@ -248,7 +260,10 @@ class MasterBridge():
 		self.mav.mav.command_long_send(r_id, tgt_comp_id, mavutil.mavlink.MAV_CMD_USER_1, 0, p1, p2, p3, p4, p5, p6, p7)
 
 		if self.DEBUG:
-			rospy.logwarn("[Master]: sending CMD_LAND to all robots")
+			if r_id > 0:
+				rospy.logwarn("[Master]: sending CMD_LAND to robot with MAVLink ID = %s", r_id)
+			else:
+				rospy.logwarn("[Master]: sending CMD_LAND to all robots")
 
 	def holdCb(self, msg):
 		r_id = msg.data
@@ -259,7 +274,10 @@ class MasterBridge():
 		self.mav.mav.command_long_send(r_id, tgt_comp_id, mavutil.mavlink.MAV_CMD_USER_1, 0, p1, p2, p3, p4, p5, p6, p7)
 
 		if self.DEBUG:
-			rospy.logwarn("[Master]: sending CMD_HOLD to all robots")
+			if r_id > 0:
+				rospy.logwarn("[Master]: sending CMD_HOLD to robot with MAVLink ID = %s", r_id)
+			else:
+				rospy.logwarn("[Master]: sending CMD_HOLD to all robots")
 
 	def posctlCb(self, msg):
 		r_id = msg.data
@@ -270,7 +288,38 @@ class MasterBridge():
 		self.mav.mav.command_long_send(r_id, tgt_comp_id, mavutil.mavlink.MAV_CMD_USER_1, 0, p1, p2, p3, p4, p5, p6, p7)
 
 		if self.DEBUG:
-			rospy.logwarn("[Master]: sending CMD_POSCTL to all robots")
+			if r_id > 0:
+				rospy.logwarn("[Master]: sending CMD_POSCTL to robot with MAVLink ID = %s", r_id)
+			else:
+				rospy.logwarn("[Master]: sending CMD_POSCTL to all robots")
+
+	def shutdownCb(self, msg):
+		r_id = msg.data
+		tgt_comp_id = 0
+		p1 = self.MASTER_CMD
+		p2 = self.MASTER_CMD_SHUTDOWN
+		p3, p4, p5, p6, p7 = 0, 0, 0, 0, 0
+		self.mav.mav.command_long_send(r_id, tgt_comp_id, mavutil.mavlink.MAV_CMD_USER_1, 0, p1, p2, p3, p4, p5, p6, p7)
+
+		if self.DEBUG:
+			if r_id > 0:
+				rospy.logwarn("[Master]: sending CMD_SHUTDOWN to robot with MAVLink ID = %s", r_id)
+			else:
+				rospy.logwarn("[Master]: sending CMD_SHUTDOWN to all robots")
+
+	def rebootCb(self, msg):
+		r_id = msg.data
+		tgt_comp_id = 0
+		p1 = self.MASTER_CMD
+		p2 = self.MASTER_CMD_REBOOT
+		p3, p4, p5, p6, p7 = 0, 0, 0, 0, 0
+		self.mav.mav.command_long_send(r_id, tgt_comp_id, mavutil.mavlink.MAV_CMD_USER_1, 0, p1, p2, p3, p4, p5, p6, p7)
+
+		if self.DEBUG:
+			if r_id > 0:
+				rospy.logwarn("[Master]: sending CMD_REBOOT to robot with MAVLink ID = %s", r_id)
+			else:
+				rospy.logwarn("[Master]: sending CMD_REBOOT to all robots")
 
 def main():
 	rospy.init_node('master_mavlink_node', anonymous=True)
