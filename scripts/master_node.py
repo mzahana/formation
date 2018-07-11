@@ -32,6 +32,8 @@ rospack = rospkg.RosPack()
 
 class Mission:
 	def __init__(self):
+
+		self.DEBUG		= rospy.get_param("DEBUG", False)
 		# number of robots
 		self.n 			= rospy.get_param("nRobots", 5)
 		# robot's radius
@@ -105,7 +107,7 @@ class Mission:
 		self.ASSIGNMENT		= False
 		self.GOAL_SEND		= False
 		self.GOAL_RECEIVE	= False
-		self.SEND_GO		= True
+		self.SEND_GO		= False
 		self.CHECK_SHAPE	= False
 		self.STAY_IN_SHAPE	= False
 
@@ -379,12 +381,12 @@ def main():
 		rospy.Subscriber(M.r_loc_topic_names[i], RobotState, M.robotStateCb)	
 
 	# Subscribers: Robots states
-	rospy.Subscriber(M.r_loc_topic_names[0], RobotState, M.r0Cb)
-	rospy.Subscriber(M.r_loc_topic_names[1], RobotState, M.r1Cb)
-	rospy.Subscriber(M.r_loc_topic_names[2], RobotState, M.r2Cb)
-	rospy.Subscriber(M.r_loc_topic_names[3], RobotState, M.r3Cb)
-	rospy.Subscriber(M.r_loc_topic_names[4], RobotState, M.r4Cb)
-	rospy.Subscriber(M.r_loc_topic_names[5], RobotState, M.r5Cb)
+	#rospy.Subscriber(M.r_loc_topic_names[0], RobotState, M.r0Cb)
+	#rospy.Subscriber(M.r_loc_topic_names[1], RobotState, M.r1Cb)
+	#rospy.Subscriber(M.r_loc_topic_names[2], RobotState, M.r2Cb)
+	#rospy.Subscriber(M.r_loc_topic_names[3], RobotState, M.r3Cb)
+	#rospy.Subscriber(M.r_loc_topic_names[4], RobotState, M.r4Cb)
+	#rospy.Subscriber(M.r_loc_topic_names[5], RobotState, M.r5Cb)
 
 	# Subscriber nRobots
 	rospy.Subscriber("/setnRobots", Int32, M.setnRobotsCb)
@@ -413,6 +415,8 @@ def main():
 	while not rospy.is_shutdown():
 
 		if M.M_END:
+			if M.DEBUG:
+				rospy.logwarn("[master_node]: Mission END")
 			M.START = True
 			M.USER_START = False
 			M.ASSIGNMENT = False
@@ -427,10 +431,14 @@ def main():
 
 
 		if M.USER_START and M.START:
+			if M.DEBUG:
+				rospy.logwarn("[master_node]: Mission STARTED")
 			M.START = False
 			M.ASSIGNMENT = True
 
 		if M.ASSIGNMENT:
+			if M.DEBUG:
+				rospy.logwarn("[master_node]: Mission in ASSIGNMENT state")
 			M.ASSIGNMENT = False
 
 			rospy.logwarn("Processing shape %s", M.shape_counter)
@@ -440,6 +448,8 @@ def main():
 				M.M_END = True
 
 		if M.GOAL_SEND:
+			if M.DEBUG:
+				rospy.logwarn("[master_node]: GOAL_SEND state")
 			if not all(M.received_goals):
 				form_pub.publish(M.goals_msg)
 			else:
@@ -447,6 +457,8 @@ def main():
 				M.SEND_GO = True
 
 		if M.SEND_GO:
+			if M.DEBUG:
+				rospy.logwarn("[master_node]: SEND_GO state")
 			if not all(M.robots_started_mission):
 				go_pub.publish(go_msg)
 			else:
@@ -454,6 +466,8 @@ def main():
 				M.CHECK_SHAPE = True
 
 		if M.CHECK_SHAPE:
+			if M.DEBUG:
+				rospy.logwarn("[master_node]: CHECK_SHAPE state")
 			if M.isFormationComplete():
 				t0 = time.time()
 				M.CHECK_SHAPE = False
@@ -468,6 +482,8 @@ def main():
 				rospy.logwarn("Waiting %s [seconds] at shape %s.", dt_shape, M.shape_counter)
 
 		if M.STAY_IN_SHAPE:
+			if M.DEBUG:
+				rospy.logwarn("[master_node]: STAY_IN_SHAPE state")
 			dt = time.time() - t0
 			if len(M.Sdt) == M.nS:
 				dt_shape = M.Sdt[M.shape_counter]
