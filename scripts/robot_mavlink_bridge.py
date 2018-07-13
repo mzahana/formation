@@ -60,7 +60,7 @@ class RobotBridge():
 		self.MASTER_CMD_ACK			= 16
 
 		# Subscribers
-		rospy.Subscriber('state', RobotFormationtState, self.stateCb)
+		rospy.Subscriber('state', RobotFormationState, self.stateCb)
 
 		# Publishers
 		self.arm_pub = rospy.Publisher("/arm", Empty, queue_size=1)
