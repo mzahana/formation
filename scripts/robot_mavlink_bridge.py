@@ -23,17 +23,33 @@ class RobotBridge():
 		if self.DEBUG:
 			rospy.logwarn("[DEBUG] Robot ID %s", self.myID)
 
+		# pymavlink connections
+		#----------------------
+		# Used mainly to exchange direct MAVLink msgs with FCU (via mavros gcs_url for now)
+		self.robot_udp_link			= rospy.get_param("robot_udp_link", "127.0.0.1:30000")
+
+		# Serila link used to exchange MAVLink with master node (e.g. using telemetry radio)
+		self.robot_serial_link		= rospy.get_param("robot_serial_link","/dev/ttyUSB0")
+
+		self.serial_baudrate		= rospy.get_param("serial_baudrate", 57600)
+
 		# pymavlink connection
 		self.robot_udp				= rospy.get_param("robot_udp", "127.0.0.1:30000")
 		if self.DEBUG:
 			rospy.logwarn("[Robot %s]: robot_udp= %s", self.myID, self.robot_udp)
 
-		# this robot's mavlink ID = myID+1
+		# this robot's mavlink ID starts at 1 = myID+1
 		self.my_mavlink_ID			= self.myID + 1
 		if self.DEBUG:
 			rospy.logwarn("[Robot %s]: Robot MAVLink ID = %s", self.myID, self.my_mavlink_ID)
 
-		self.mav					= mavutil.mavlink_connection("udpin:"+self.robot_udp, source_system=self.my_mavlink_ID)
+		# link to fcu (e.g. through MAVROS gcs bridge): udp
+		self.fcu_link				= mavutil.mavlink_connection("udpin:"+self.robot_udp_link, source_system=self.my_mavlink_ID)
+
+		# link to master: serial
+		self.mav 					= mavutil.mavlink_connection(self.robot_serial_link, baud=self.serial_baudrate, source_system=self.my_mavlink_ID)
+		#----------------------------
+		# DONE with pymavlink connection
 
 		self.master_sys_id			= rospy.get_param("master_sys_id", 255)
 		if self.DEBUG:
@@ -93,7 +109,21 @@ class RobotBridge():
 		p7 = msg.point.z
 		self.mav.mav.command_long_send(self.master_sys_id, tgt_comp_id, mavutil.mavlink.MAV_CMD_USER_1, 0, p1, p2, p3, p4, p5, p6, p7)
 
-	def recvCb(self):
+	def fcu_recvCb(self):
+		# this callback is supposed to receive msg from fcu via mavros gcs bridge
+		while(True):
+			msg = self.fcu_link.recv_match(blocking=True)
+			if msg is not None:
+				if msg.get_srcSystem() == self.my_mavlink_ID:
+					if msg.get_type() == "HEARTBEAT":
+						self.mav.mav.heartbeat_send(msg.type, msg.autopilot, msg.base_mode, msg.custom_mode, msg.system_status)
+
+						if self.DEBUG:
+							rospy.logwarn("Got HEARTBEAT from FCU and forwarded to master GCS")
+
+			sleep(0.02)
+
+	def master_recvCb(self):
 		# This will be running in a Thread not as ROS callback
 		cmd = mavutil.mavlink.MAV_CMD_USER_1
 		while(True):
@@ -101,6 +131,14 @@ class RobotBridge():
 			if msg is not None:
 				if msg.get_srcSystem() == self.master_sys_id:
 					# make sure it's the right mavlink message and directed to this robot or all robots
+
+					#check for HEARTBEAT msg
+					if msg.get_type() == "HEARTBEAT":
+						if self.DEBUG:
+							rospy.logwarn("Got HEARTBEAT from master GCS")
+
+						self.fcu_link.mav.heartbeat_send(mavutil.mavlink.MAV_TYPE_GCS, mavutil.mavlink.MAV_AUTOPILOT_INVALID, mavutil.mavlink.MAV_MODE_MANUAL_ARMED, 0, mavutil.mavlink.MAV_STATE_ACTIVE)
+
 					if msg.get_type() == "COMMAND_LONG" and msg.command == cmd and (msg.target_system == self.my_mavlink_ID or msg.target_system == 0) and msg.param1 == self.MASTER_CMD:
 						# message parsing: param1 is used to differntiate between ROBOT_STATE and MASTER_CMD
 						if msg.param2 == self.MASTER_CMD_ARM and msg.param3 == 1:
@@ -300,7 +338,7 @@ def main():
 	rospy.logwarn("Started robot_mavlink_node for Robot %s", R.myID)
 
 	# Run recevCb in a thread
-	recvthread = Thread(target=R.recvCb)
+	recvthread = Thread(target=R.master_recvCb)
 	recvthread.daemon = True
 	recvthread.start()
 

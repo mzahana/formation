@@ -31,18 +31,18 @@ class MasterBridge():
 			rospy.logwarn("Master MAVLink ID = %s", self.master_sys_id)
 
 		# pymavlink connection
-		self.master_udp				= rospy.get_param("master_udp", "127.0.0.1:30000")
-		self.master_serial			= rospy.get_param("master_serial", "/dev/ttyUSB0")
-		self.serial_baud			= rospy.get_param("serial_baud", 57600)
+		self.master_udp_link		= rospy.get_param("master_udp_link", "127.0.0.1:30000")
+		self.master_serial_link		= rospy.get_param("master_serial_link", "/dev/ttyUSB0")
+		self.serial_baudrate		= rospy.get_param("serial_baudrate", 57600)
 
 		if self.USE_SERIAL:
-			self.mav				= mavutil.mavlink_connection(self.master_serial, baud=self.serial_baud, source_system=self.master_sys_id)
+			self.mav				= mavutil.mavlink_connection(self.master_serial_link, baud=self.serial_baudrate, source_system=self.master_sys_id)
 			if self.DEBUG:
-				rospy.logwarn("Master is connected on udpout:%s", self.master_serial)
+				rospy.logwarn("Master is connected on udpout:%s", self.master_serial_link)
 		else:
-			self.mav				= mavutil.mavlink_connection("udpout:"+self.master_udp, source_system=self.master_sys_id)
+			self.mav				= mavutil.mavlink_connection("udpout:"+self.master_udp_link, source_system=self.master_sys_id)
 			if self.DEBUG:
-				rospy.logwarn("Master is connected on udpout:%s", self.master_udp)
+				rospy.logwarn("Master is connected on udpout:%s", self.master_udp_link)
 
 		self.ROBOT_STATE			= 1
 		self.MASTER_CMD				= 2
@@ -98,7 +98,7 @@ class MasterBridge():
 	def send_heartbeat(self):
 		""" Sends heartbeat msg to all vehicles
 		"""
-		self.mav.mav.heartbeat_send(mavutil.mavlink.MAV_TYPE_GCS, mavutil.mavlink.MAV_AUTOPILOT_INVALID, mavutil.mavlink.MAV_MODE_FLAG_CUSTOM_MODE_ENABLED, 0, mavutil.mavlink.MAV_STATE_UNINIT)
+		self.mav.mav.heartbeat_send(mavutil.mavlink.MAV_TYPE_GCS, mavutil.mavlink.MAV_AUTOPILOT_INVALID, mavutil.mavlink.MAV_MODE_MANUAL_ARMED, 0, mavutil.mavlink.MAV_STATE_ACTIVE)
 
 	def recvCb(self):
 		# This callback will be running inside a Thread
@@ -110,6 +110,13 @@ class MasterBridge():
 				cmd_type = msg.get_type()
 				src_sys = msg.get_srcSystem()
 				msg_tgt = msg.target_system
+
+				# check for HEARTBEAT
+				if msg.get_type() == "HEARTBEAT":
+					# TODO: Use this to check connections with vehicles
+					if self.DEBUG:
+						rospy.logwarn("Got HEARTBEAT from SYS=%s", msg.get_srcSystem())
+
 				if cmd_type == "COMMAND_LONG" and src_sys > 0 and src_sys <= self.n and msg.command == cmd and msg_tgt == self.master_sys_id:
 
 					if msg.param1 == self.ROBOT_STATE:
