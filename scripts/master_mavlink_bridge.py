@@ -93,7 +93,7 @@ class MasterBridge():
 		# Publishers
 		self.robot_state_pub_list = []
 		for i in range(self.n):
-			self.robot_state_pub_list.append(rospy.Publisher(self.r_loc_topic_names[i], RobotState, queue_size=1))
+			self.robot_state_pub_list.append(rospy.Publisher(self.r_loc_topic_names[i], RobotFormationState, queue_size=1))
 
 	def send_heartbeat(self):
 		""" Sends heartbeat msg to all vehicles
@@ -115,7 +115,7 @@ class MasterBridge():
 					if msg.param1 == self.ROBOT_STATE:
 						if self.DEBUG:
 							rospy.logwarn("[Master]: Received ROBOT_STATE from Robot %s", src_sys-1)
-						state_msg = RobotState()
+						state_msg = RobotFormationState()
 						state_msg.header.stamp		= rospy.Time.now()
 						state_msg.received_goal		= msg.param2
 						state_msg.mission_started	= msg.param3

@@ -7,7 +7,7 @@ import numpy as np
 from subprocess import call
 
 # msgs
-from formation.msg import RobotState, FormationPositions, RobotTarget
+from formation.msg import RobotFormationState, FormationPositions, RobotTarget
 from std_msgs.msg import Empty, Int32, Float32
 from geometry_msgs.msg import Point, PointStamped, PoseStamped
 from sensor_msgs.msg import NavSatFix
@@ -147,7 +147,7 @@ class Robot:
 		self.tf					= 0.0
 
 		# Robot state msg
-		self.robot_msg			= RobotState()
+		self.robot_msg			= RobotFormationState()
 
 		# used to cmopute t0 only once after the GO signal is received
 		self.t0_trigger			= False
@@ -497,7 +497,7 @@ def main():
 	# Publisher: PositionTarget
 	setp_pub = rospy.Publisher("mavros/setpoint_raw/local", PositionTarget, queue_size=1)
 	# robot msg
-	robot_pub = rospy.Publisher("state", RobotState, queue_size=1) 
+	robot_pub = rospy.Publisher("state", RobotFormationState, queue_size=1) 
 
 	rate = rospy.Rate(10.0)
 

@@ -2,7 +2,7 @@
 
 import rospy
 
-from formation.msg import RobotState, FormationPositions, RobotTarget
+from formation.msg import RobotFormationState, FormationPositions, RobotTarget
 import pymavlink.mavutil as mavutil
 from std_msgs.msg import Empty, Int32, Float32
 from geometry_msgs.msg import Point
@@ -60,7 +60,7 @@ class RobotBridge():
 		self.MASTER_CMD_ACK			= 16
 
 		# Subscribers
-		rospy.Subscriber('state', RobotState, self.stateCb)
+		rospy.Subscriber('state', RoboFormationtState, self.stateCb)
 
 		# Publishers
 		self.arm_pub = rospy.Publisher("/arm", Empty, queue_size=1)
