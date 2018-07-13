@@ -4,7 +4,7 @@ import rospy
 
 from std_msgs.msg import Empty, Int32, Float32
 from geometry_msgs.msg import Point
-from formation.msg import RobotState, FormationPositions, RobotTarget
+from formation.msg import RobotFormationState, FormationPositions, RobotTarget
 import pymavlink.mavutil as mavutil
 
 from threading import Thread
@@ -16,6 +16,11 @@ class MasterBridge():
 	def __init__(self):
 
 		self.DEBUG					= rospy.get_param("DEBUG", False)
+
+		self.ENABLE_MASTER_GCS		= rospy.get_param("USE_MASTER_AS_GCS", False)
+
+		# If True, connection will be over serial, otherwise will be over UDP
+		self.USE_SERIAL				= rospy.get_param("USE_SERIAL", False)
 		
 		self.n 						= rospy.get_param("nRobots", 5)
 		if self.DEBUG:
@@ -27,9 +32,17 @@ class MasterBridge():
 
 		# pymavlink connection
 		self.master_udp				= rospy.get_param("master_udp", "127.0.0.1:30000")
-		self.mav					= mavutil.mavlink_connection("udpout:"+self.master_udp)
-		if self.DEBUG:
-			rospy.logwarn("Master is connected on udpout:%s", self.master_udp)
+		self.master_serial			= rospy.get_param("master_serial", "/dev/ttyUSB0")
+		self.serial_baud			= rospy.get_param("serial_baud", 57600)
+
+		if self.USE_SERIAL:
+			self.mav				= mavutil.mavlink_connection(self.master_serial, baud=self.serial_baud, source_system=self.master_sys_id)
+			if self.DEBUG:
+				rospy.logwarn("Master is connected on udpout:%s", self.master_serial)
+		else:
+			self.mav				= mavutil.mavlink_connection("udpout:"+self.master_udp, source_system=self.master_sys_id)
+			if self.DEBUG:
+				rospy.logwarn("Master is connected on udpout:%s", self.master_udp)
 
 		self.ROBOT_STATE			= 1
 		self.MASTER_CMD				= 2
@@ -81,6 +94,11 @@ class MasterBridge():
 		self.robot_state_pub_list = []
 		for i in range(self.n):
 			self.robot_state_pub_list.append(rospy.Publisher(self.r_loc_topic_names[i], RobotState, queue_size=1))
+
+	def send_heartbeat(self):
+		""" Sends heartbeat msg to all vehicles
+		"""
+		self.mav.mav.heartbeat_send(mavutil.mavlink.MAV_TYPE_GCS, mavutil.mavlink.MAV_AUTOPILOT_INVALID, mavutil.mavlink.MAV_MODE_FLAG_CUSTOM_MODE_ENABLED, 0, mavutil.mavlink.MAV_STATE_UNINIT)
 
 	def recvCb(self):
 		# This callback will be running inside a Thread
@@ -333,9 +351,14 @@ def main():
 	recvthread.daemon = True
 	recvthread.start()
 
-	rate = rospy.Rate(5.0)
+	# ROS loop frequency, Hz
+	rate = rospy.Rate(2.0)
 
 	while not rospy.is_shutdown():
+
+		if M.ENABLE_MASTER_GCS:
+			M.send_heartbeat()
+
 		rate.sleep()
 
 if __name__ == '__main__':

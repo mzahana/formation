@@ -4,7 +4,7 @@ import rospy # ROS interface
 import pymap3d as pm # coordinate conversion
 
 # msgs
-from formation.msg import RobotState, FormationPositions
+from formation.msg import RobotFormationState, FormationPositions
 from std_msgs.msg import Empty, Int32
 from geometry_msgs.msg import Point, PointStamped
 from sensor_msgs.msg import NavSatFix
@@ -378,15 +378,7 @@ def main():
 	M = Mission()
 
 	for i in range(M.n):
-		rospy.Subscriber(M.r_loc_topic_names[i], RobotState, M.robotStateCb)	
-
-	# Subscribers: Robots states
-	#rospy.Subscriber(M.r_loc_topic_names[0], RobotState, M.r0Cb)
-	#rospy.Subscriber(M.r_loc_topic_names[1], RobotState, M.r1Cb)
-	#rospy.Subscriber(M.r_loc_topic_names[2], RobotState, M.r2Cb)
-	#rospy.Subscriber(M.r_loc_topic_names[3], RobotState, M.r3Cb)
-	#rospy.Subscriber(M.r_loc_topic_names[4], RobotState, M.r4Cb)
-	#rospy.Subscriber(M.r_loc_topic_names[5], RobotState, M.r5Cb)
+		rospy.Subscriber(M.r_loc_topic_names[i], RobotFormationState, M.robotStateCb)	
 
 	# Subscriber nRobots
 	rospy.Subscriber("/setnRobots", Int32, M.setnRobotsCb)
