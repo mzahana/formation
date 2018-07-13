@@ -85,7 +85,7 @@ class MasterBridge():
 		vs = VehicleState()
 		# initialize
 		for i in range(self.n):
-			self.vehicles_states_msg.append(vs)
+			self.vehicles_states_msg.vehicles_states.append(vs)
 
 		# Subscribers
 		rospy.Subscriber('/arm_robot', Int32, self.armCb)
@@ -137,12 +137,12 @@ class MasterBridge():
 						if self.DEBUG:
 							rospy.logwarn("[Master]: Received FCU_STATE from Robot %s", src_sys-1)
 
-						self.vehicles_states_msg[src_sys-1].mav_id = src_sys
-						self.vehicles_states_msg[src_sys-1].connected = True if msg.param3 > 0 else False
-						self.vehicles_states_msg[src_sys-1].armed = True if msg.param4 > 0 else False
-						self.vehicles_states_msg[src_sys-1].battery = msg.param5
-						self.vehicles_states_msg[src_sys-1].flight_mode = msg.param6
-						self.vehicles_states_msg[src_sys-1].health = msg.param7
+						self.vehicles_states_msg.vehicles_states[src_sys-1].mav_id = src_sys
+						self.vehicles_states_msg.vehicles_states[src_sys-1].connected = True if msg.param3 > 0 else False
+						self.vehicles_states_msg.vehicles_states[src_sys-1].armed = True if msg.param4 > 0 else False
+						self.vehicles_states_msg.vehicles_states[src_sys-1].battery = msg.param5
+						self.vehicles_states_msg.vehicles_states[src_sys-1].flight_mode = msg.param6
+						self.vehicles_states_msg.vehicles_states[src_sys-1].health = msg.param7
 
 					if msg.param1 == self.ROBOT_STATE:
 						if self.DEBUG:
