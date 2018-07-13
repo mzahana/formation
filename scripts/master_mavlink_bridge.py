@@ -4,7 +4,7 @@ import rospy
 
 from std_msgs.msg import Empty, Int32, Float32
 from geometry_msgs.msg import Point
-from formation.msg import RobotFormationState, FormationPositions, RobotTarget
+from formation.msg import RobotFormationState, FormationPositions, RobotTarget, VehicleState, MultiVehicleState
 import pymavlink.mavutil as mavutil
 
 from threading import Thread
@@ -60,6 +60,16 @@ class MasterBridge():
 		self.MASTER_CMD_GOAL		= 14
 		self.MASTER_CMD_SET_TOALT	= 15
 		self.MASTER_CMD_ACK			= 16
+		self.ROBOT_HEALTH_OK		= 17
+		self.ROBOT_HEALTH_BAD		= 18
+		self.FCU_STATE				= 19
+		self.MAV_MODE_MANUAL		= 20
+		self.MAV_MODE_OFFBOARD		= 21
+		self.MAV_MODE_POSCTL		= 22
+		self.MAV_MODE_ALTCTL		= 23
+		self.MAV_MODE_RTL			= 24
+		self.MAV_MODE_LAND			= 25
+		self.MAV_MODE_UNKNOWN		= 26
 
 		# CMD string
 		self.CMD_STRING				= {3:'MASTER_CMD_ARM', 4:'MASTER_CMD_TKO', 5:'MASTER_CMD_LAND', 6:'MASTER_CMD_POSCTL', 7:'MASTER_CMD_HOLD', 8:'MASTER_CMD_SHUTDOWN', 9:'MASTER_CMD_REBOOT', 10:'MASTER_CMD_SET_ORIGIN', 11:'MASTER_CMD_SET_EAST', 12:'MASTER_CMD_SET_nROBOTS', 13:'MASTER_CMD_GO', 14:'MASTER_CMD_GOAL', 15:'MASTER_CMD_SET_TOALT'}
@@ -69,6 +79,13 @@ class MasterBridge():
 		rstr = "/robot"
 		for i in range(self.n):
 			self.r_loc_topic_names.append(rstr+str(i)+"/state")
+
+		# All vehicles states msg
+		self.vehicles_states_msg	= MultiVehicleState()
+		vs = VehicleState()
+		# initialize
+		for i in range(self.n):
+			self.vehicles_states_msg.append(vs)
 
 		# Subscribers
 		rospy.Subscriber('/arm_robot', Int32, self.armCb)
@@ -95,6 +112,9 @@ class MasterBridge():
 		for i in range(self.n):
 			self.robot_state_pub_list.append(rospy.Publisher(self.r_loc_topic_names[i], RobotFormationState, queue_size=1))
 
+		# All vehicles FCU state
+		self.vehicles_states_pub = rospy.Publisher('vehicles_states', MultiVehicleState, queue_size = 1)
+
 	def send_heartbeat(self):
 		""" Sends heartbeat msg to all vehicles
 		"""
@@ -111,13 +131,18 @@ class MasterBridge():
 				src_sys = msg.get_srcSystem()
 				msg_tgt = msg.target_system
 
-				# check for HEARTBEAT
-				if msg.get_type() == "HEARTBEAT":
-					# TODO: Use this to check connections with vehicles
-					if self.DEBUG:
-						rospy.logwarn("Got HEARTBEAT from SYS=%s", msg.get_srcSystem())
-
 				if cmd_type == "COMMAND_LONG" and src_sys > 0 and src_sys <= self.n and msg.command == cmd and msg_tgt == self.master_sys_id:
+
+					if msg.param1 == self.FCU_STATE:
+						if self.DEBUG:
+							rospy.logwarn("[Master]: Received FCU_STATE from Robot %s", src_sys-1)
+
+						self.vehicles_states_msg[src_sys-1].mav_id = src_sys
+						self.vehicles_states_msg[src_sys-1].connected = True if msg.param3 > 0 else False
+						self.vehicles_states_msg[src_sys-1].armed = True if msg.param4 > 0 else False
+						self.vehicles_states_msg[src_sys-1].battery = msg.param5
+						self.vehicles_states_msg[src_sys-1].flight_mode = msg.param6
+						self.vehicles_states_msg[src_sys-1].health = msg.param7
 
 					if msg.param1 == self.ROBOT_STATE:
 						if self.DEBUG:
@@ -365,6 +390,10 @@ def main():
 
 		if M.ENABLE_MASTER_GCS:
 			M.send_heartbeat()
+
+		# publish all vehicles FCU state
+		M.vehicles_states_msg.header.stamp = rospy.Time.now()
+		M.vehicles_states_pub.publish(M.vehicles_states_msg)
 
 		rate.sleep()
 

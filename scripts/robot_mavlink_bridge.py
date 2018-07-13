@@ -2,10 +2,13 @@
 
 import rospy
 
-from formation.msg import RobotFormationState, FormationPositions, RobotTarget
+from formation.msg import RobotFormationState, FormationPositions, RobotTarget, VehicleState
 import pymavlink.mavutil as mavutil
 from std_msgs.msg import Empty, Int32, Float32
 from geometry_msgs.msg import Point
+from mavros_msgs.msg import State
+from sensor_msgs.msg import BatteryState
+from diagnostic_msgs.msg import DiagnosticStatus
 
 from threading import Thread
 
@@ -74,9 +77,25 @@ class RobotBridge():
 		self.MASTER_CMD_GOAL		= 14
 		self.MASTER_CMD_SET_TOALT	= 15
 		self.MASTER_CMD_ACK			= 16
+		self.ROBOT_HEALTH_OK		= 17
+		self.ROBOT_HEALTH_BAD		= 18
+		self.FCU_STATE				= 19
+		self.MAV_MODE_MANUAL		= 20
+		self.MAV_MODE_OFFBOARD		= 21
+		self.MAV_MODE_POSCTL		= 22
+		self.MAV_MODE_ALTCTL		= 23
+		self.MAV_MODE_RTL			= 24
+		self.MAV_MODE_LAND			= 25
+		self.MAV_MODE_UNKNOWN		= 26
+
+		# msg to store VehicleState
+		self.vehicle_state			= VehicleState()
 
 		# Subscribers
 		rospy.Subscriber('state', RobotFormationState, self.stateCb)
+		rospy.Subscriber('mavros/state', State, self.mavros_stateCb)
+		rospy.Subscriber('mavros/battery', BatteryState, self.batteryCb)
+		rospy.Subscriber('mavros/diagnostics', DiagnosticStatus, self.diagnosticCb)
 
 		# Publishers
 		self.arm_pub = rospy.Publisher("/arm", Empty, queue_size=1)
@@ -95,7 +114,51 @@ class RobotBridge():
 		self.toalt_pub = rospy.Publisher("/setTOALT", Float32, queue_size=1)
 		
 
+	#### Functions
+	def send_vehicle_state(self):
+		tgt_comp_id = 0
+		p1 = self.FCU_STATE
+		p2 = self.my_mavlink_ID
+		p3 = 1 if self.vehicle_state.connected else 0	# connected
+		p4 = 1 if self.vehicle_state.armed else 0		# armed
+		p5 = self.vehicle_state.battery					# 0 < battery< 1, or -1 if invalid
+		p6 = self.vehicle_state.flight_mode				# floght mode
+		p7 = self.vehicle_state.health					# vehicle health
+		self.mav.mav.command_long_send(self.master_sys_id, tgt_comp_id, mavutil.mavlink.MAV_CMD_USER_1, 0, p1, p2, p3, p4, p5, p6, p7)
+
 	##### Callbacks ###
+
+	def mavros_stateCb(self, msg):
+		self.vehicle_state.armed = msg.armed
+		self.vehicle_state.connected = msg.connected
+		# TODO: sort out how to set flgith modes. They should be numbers not string
+		if msg.mode == 'OFFBOARD':
+			self.vehicle_state.flight_mode = self.MAV_MODE_OFFBOARD
+		elif msg.mode == 'MANUAL' or msg.mode == 'STABILIZED':
+			self.vehicle_state.flight_mode = self.MAV_MODE_MANUAL
+		elif msg.mode == 'POSCTL':
+			self.vehicle_state.flight_mode = self.MAV_MODE_POSCTL
+		elif msg.mode == 'ALTCTL':
+			self.vehicle_state.flight_mode = self.MAV_MODE_ALTCTL
+		elif msg.mode == 'AUTO.RTL':
+			self.vehicle_state.flight_mode = self.MAV_MODE_RTL
+		elif msg.mode == 'AUTO.LAND':
+			self.vehicle_state.flight_mode = self.MAV_MODE_LAND
+		else:
+			self.vehicle_state.flight_mode = self.MAV_MODE_UNKNOWN
+
+	def batteryCb(self, msg):
+		if msg.percentage > 0.0:
+			self.vehicle_state.battery = msg.percentage
+		else:
+			self.vehicle_state.battery = -1.0
+
+	def diagnosticCb(self, msg):
+		if msg.level > 0:
+			self.vehicle_state.health = self.ROBOT_HEALTH_BAD
+		else:
+			self.vehicle_state.health = self.ROBOT_HEALTH_OK
+
 	def stateCb(self, msg):
 
 		# Send robot state as MAV_CMD
@@ -108,18 +171,6 @@ class RobotBridge():
 		p6 = msg.point.y
 		p7 = msg.point.z
 		self.mav.mav.command_long_send(self.master_sys_id, tgt_comp_id, mavutil.mavlink.MAV_CMD_USER_1, 0, p1, p2, p3, p4, p5, p6, p7)
-
-	def fcu_recvCb(self):
-		# this callback is supposed to receive msg from fcu via mavros gcs bridge
-		while(True):
-			msg = self.fcu_link.recv_match(blocking=True)
-			if msg is not None:
-				if msg.get_srcSystem() == self.my_mavlink_ID:
-					if msg.get_type() == "HEARTBEAT":
-						self.mav.mav.heartbeat_send(msg.type, msg.autopilot, msg.base_mode, msg.custom_mode, msg.system_status)
-
-						if self.DEBUG:
-							rospy.logwarn("Got HEARTBEAT from FCU and forwarded to master GCS")
 
 			sleep(0.02)
 
@@ -135,7 +186,7 @@ class RobotBridge():
 					#check for HEARTBEAT msg
 					if msg.get_type() == "HEARTBEAT":
 						if self.DEBUG:
-							rospy.logwarn("Got HEARTBEAT from master GCS")
+							rospy.logwarn("Got HEARTBEAT from master GCS and forwarding it to FCU")
 
 						self.fcu_link.mav.heartbeat_send(mavutil.mavlink.MAV_TYPE_GCS, mavutil.mavlink.MAV_AUTOPILOT_INVALID, mavutil.mavlink.MAV_MODE_MANUAL_ARMED, 0, mavutil.mavlink.MAV_STATE_ACTIVE)
 
@@ -345,6 +396,7 @@ def main():
 	rate = rospy.Rate(5.0)
 
 	while not rospy.is_shutdown():
+		R.vehicle_state.header.stamp = rospy.Time.now()
 		rate.sleep()
 
 	
