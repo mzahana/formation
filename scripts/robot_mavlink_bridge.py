@@ -172,8 +172,6 @@ class RobotBridge():
 		p7 = msg.point.z
 		self.mav.mav.command_long_send(self.master_sys_id, tgt_comp_id, mavutil.mavlink.MAV_CMD_USER_1, 0, p1, p2, p3, p4, p5, p6, p7)
 
-			sleep(0.02)
-
 	def master_recvCb(self):
 		# This will be running in a Thread not as ROS callback
 		cmd = mavutil.mavlink.MAV_CMD_USER_1
