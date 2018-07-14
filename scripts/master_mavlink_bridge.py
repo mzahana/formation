@@ -133,7 +133,7 @@ class MasterBridge():
 						self.vehicles_states_msg.vehicles_states[i].flight_mode = self.MAV_MODE_UNKNOWN
 						self.vehicles_states_msg.vehicles_states[i].health = self.ROBOT_HEALTH_BAD
 				elif r_id > -1:
-					self.vehicles_states_msg.vehicles_states[r_id].mav_id = i+1
+					self.vehicles_states_msg.vehicles_states[r_id].mav_id = r_id+1
 					self.vehicles_states_msg.vehicles_states[r_id].connected = False
 					self.vehicles_states_msg.vehicles_states[r_id].armed = False
 					self.vehicles_states_msg.vehicles_states[r_id].battery = -1.0
