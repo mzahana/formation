@@ -1,0 +1,16 @@
+<launch>
+
+	<!-- Launch master node-->
+
+	<rosparam command="load" file="$(find formation)/config/params.yaml" />
+	<rosparam command="load" file="$(find formation)/config/shape.yaml" />
+	<rosparam command="load" file="$(find formation)/config/mavlink_bridge_params.yaml" />
+
+	<node pkg="formation" type="master_node.py" name="master_node"  required="true" output="screen">
+    </node>
+
+    <node pkg="formation" type="master_mavlink_bridge.py" name="master_mavlink_bridge"  required="true" output="screen">
+    </node>
+
+
+</launch>
