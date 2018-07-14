@@ -21,6 +21,9 @@ class MasterBridge():
 
 		# If True, connection will be over serial, otherwise will be over UDP
 		self.USE_SERIAL				= rospy.get_param("USE_SERIAL", False)
+
+		# connection timeout in seconds
+		self.CONN_TOUT				= rospy.get_param("CONN_TOUT", 2.0)
 		
 		self.n 						= rospy.get_param("nRobots", 5)
 		if self.DEBUG:
@@ -115,6 +118,40 @@ class MasterBridge():
 		# All vehicles FCU state
 		self.vehicles_states_pub = rospy.Publisher('vehicles_states', MultiVehicleState, queue_size = 1)
 
+	# Functions
+	def reset_vehicle_fcu_state(self, r_id):
+		# id is vehicle number starts from 0
+		# if id == -1, will reset all vehicles
+		if self.vehicles_states_msg is not None:
+			if r_id < self.n:
+				if r_id == -1:
+					for i in range(self.n):
+						self.vehicles_states_msg.vehicles_states[i].mav_id = i+1
+						self.vehicles_states_msg.vehicles_states[i].connected = False
+						self.vehicles_states_msg.vehicles_states[i].armed = False
+						self.vehicles_states_msg.vehicles_states[i].battery = -1.0
+						self.vehicles_states_msg.vehicles_states[i].flight_mode = self.MAV_MODE_UNKNOWN
+						self.vehicles_states_msg.vehicles_states[i].health = self.ROBOT_HEALTH_BAD
+				elif r_id > -1:
+					self.vehicles_states_msg.vehicles_states[r_id].mav_id = i+1
+					self.vehicles_states_msg.vehicles_states[r_id].connected = False
+					self.vehicles_states_msg.vehicles_states[r_id].armed = False
+					self.vehicles_states_msg.vehicles_states[r_id].battery = -1.0
+					self.vehicles_states_msg.vehicles_states[r_id].flight_mode = self.MAV_MODE_UNKNOWN
+					self.vehicles_states_msg.vehicles_states[r_id].health = self.ROBOT_HEALTH_BAD
+				else:
+					rospy.logwarn("r_id is not a valid number")
+
+	def check_vehicle_connection_status(self):
+		current_time = rospy.Time.now()
+		for i in range(self.n):
+			last_time = self.vehicles_states_msg.vehicles_states[i].header.stamp
+			dt = (current_time - last_time).to_sec()
+			if dt > self.CONN_TOUT:
+				self.reset_vehicle_fcu_state(i)
+				if self.DEBUG:
+					rospy.logwarn("Connection is lost with vehicle %s", i)
+
 	def send_heartbeat(self):
 		""" Sends heartbeat msg to all vehicles
 		"""
@@ -137,6 +174,7 @@ class MasterBridge():
 						if self.DEBUG:
 							rospy.logwarn("[Master]: Received FCU_STATE from Robot %s", src_sys-1)
 
+						self.vehicles_states_msg.vehicles_states[src_sys-1].header.stamp = rospy.Time.now()
 						self.vehicles_states_msg.vehicles_states[src_sys-1].mav_id = src_sys
 						self.vehicles_states_msg.vehicles_states[src_sys-1].connected = True if msg.param3 > 0 else False
 						self.vehicles_states_msg.vehicles_states[src_sys-1].armed = True if msg.param4 > 0 else False
@@ -393,6 +431,7 @@ def main():
 
 		# publish all vehicles FCU state
 		M.vehicles_states_msg.header.stamp = rospy.Time.now()
+		M.check_vehicle_connection_status()
 		M.vehicles_states_pub.publish(M.vehicles_states_msg)
 
 		rate.sleep()
