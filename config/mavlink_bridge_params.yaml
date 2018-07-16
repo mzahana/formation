@@ -8,7 +8,7 @@ CONN_TOUT: 3.0
 
 # Robot MAVLink bridge params
 robot_udp_link: "127.0.0.1:30000"
-robot_serial_link: "/dev/ttyUB0"
+robot_serial_link: "/dev/ttyTelem"
 
 # Common params
 serial_baudrate: 57600
