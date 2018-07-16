@@ -174,10 +174,12 @@ class RobotBridge():
 		self.mav.mav.command_long_send(self.master_sys_id, tgt_comp_id, mavutil.mavlink.MAV_CMD_USER_1, 0, p1, p2, p3, p4, p5, p6, p7)
 
 	def fcu_recvCb(self):
-		while(True):
+		done = False
+		while(not done):
 			msg = self.fcu_link.recv_match(blocking=True)
 			if msg is not None:
-				print "Got MAVLink msg from FCU through UDP mavros link", msg.get_srcSystem()
+				print "Got MAVLink msg from FCU through UDP mavros link. Exiting now", msg.get_srcSystem()
+				done = True
 
 	def master_recvCb(self):
 		# This will be running in a Thread not as ROS callback
