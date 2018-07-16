@@ -17,7 +17,7 @@ class MasterBridge():
 
 		self.DEBUG					= rospy.get_param("DEBUG", False)
 
-		self.ENABLE_MASTER_GCS		= rospy.get_param("USE_MASTER_AS_GCS", False)
+		self.ENABLE_MASTER_GCS		= rospy.get_param("ENABLE_MASTER_GCS", False)
 
 		# If True, connection will be over serial, otherwise will be over UDP
 		self.USE_SERIAL				= rospy.get_param("USE_SERIAL", False)
@@ -85,10 +85,19 @@ class MasterBridge():
 
 		# All vehicles states msg
 		self.vehicles_states_msg	= MultiVehicleState()
-		vs = VehicleState()
 		# initialize
 		for i in range(self.n):
+			vs = VehicleState()
+			vs.header.stamp = rospy.Time.now()
+			vs.connected = False
+			vs.armed = False
+			vs.battery = -1.0
+			vs.flight_mode = self.MAV_MODE_UNKNOWN
+			vs.health = self.ROBOT_HEALTH_BAD
+			vs.mav_id = i+1
 			self.vehicles_states_msg.vehicles_states.append(vs)
+
+		print self.vehicles_states_msg
 
 		# Subscribers
 		rospy.Subscriber('/arm_robot', Int32, self.armCb)
@@ -150,12 +159,13 @@ class MasterBridge():
 			if dt > self.CONN_TOUT:
 				self.reset_vehicle_fcu_state(i)
 				if self.DEBUG:
-					rospy.logwarn("Connection is lost with vehicle %s", i)
+					rospy.logwarn("Connection is lost with vehicle %s for dt=%s", i, dt)
 
 	def send_heartbeat(self):
 		""" Sends heartbeat msg to all vehicles
 		"""
 		self.mav.mav.heartbeat_send(mavutil.mavlink.MAV_TYPE_GCS, mavutil.mavlink.MAV_AUTOPILOT_INVALID, mavutil.mavlink.MAV_MODE_MANUAL_ARMED, 0, mavutil.mavlink.MAV_STATE_ACTIVE)
+		rospy.logwarn("A HEARTBEAT is sent to all vehicles")
 
 	def recvCb(self):
 		# This callback will be running inside a Thread
@@ -166,39 +176,40 @@ class MasterBridge():
 			if msg is not None:
 				cmd_type = msg.get_type()
 				src_sys = msg.get_srcSystem()
-				msg_tgt = msg.target_system
 
-				if cmd_type == "COMMAND_LONG" and src_sys > 0 and src_sys <= self.n and msg.command == cmd and msg_tgt == self.master_sys_id:
+				if cmd_type == "COMMAND_LONG" and src_sys > 0 and src_sys <= self.n :
+					msg_tgt = msg.target_system
+					if msg.command == cmd and msg_tgt == self.master_sys_id:
 
-					if msg.param1 == self.FCU_STATE:
-						if self.DEBUG:
-							rospy.logwarn("[Master]: Received FCU_STATE from Robot %s", src_sys-1)
+						if msg.param1 == self.FCU_STATE:
+							if self.DEBUG:
+								rospy.logwarn("[Master]: Received FCU_STATE from Robot %s", src_sys-1)
 
-						self.vehicles_states_msg.vehicles_states[src_sys-1].header.stamp = rospy.Time.now()
-						self.vehicles_states_msg.vehicles_states[src_sys-1].mav_id = src_sys
-						self.vehicles_states_msg.vehicles_states[src_sys-1].connected = True if msg.param3 > 0 else False
-						self.vehicles_states_msg.vehicles_states[src_sys-1].armed = True if msg.param4 > 0 else False
-						self.vehicles_states_msg.vehicles_states[src_sys-1].battery = msg.param5
-						self.vehicles_states_msg.vehicles_states[src_sys-1].flight_mode = msg.param6
-						self.vehicles_states_msg.vehicles_states[src_sys-1].health = msg.param7
+							self.vehicles_states_msg.vehicles_states[src_sys-1].header.stamp = rospy.Time.now()
+							self.vehicles_states_msg.vehicles_states[src_sys-1].mav_id = src_sys
+							self.vehicles_states_msg.vehicles_states[src_sys-1].connected = True if msg.param3 > 0 else False
+							self.vehicles_states_msg.vehicles_states[src_sys-1].armed = True if msg.param4 > 0 else False
+							self.vehicles_states_msg.vehicles_states[src_sys-1].battery = msg.param5
+							self.vehicles_states_msg.vehicles_states[src_sys-1].flight_mode = msg.param6
+							self.vehicles_states_msg.vehicles_states[src_sys-1].health = msg.param7
 
-					if msg.param1 == self.ROBOT_STATE:
-						if self.DEBUG:
-							rospy.logwarn("[Master]: Received ROBOT_STATE from Robot %s", src_sys-1)
-						state_msg = RobotFormationState()
-						state_msg.header.stamp		= rospy.Time.now()
-						state_msg.received_goal		= msg.param2
-						state_msg.mission_started	= msg.param3
-						state_msg.arrived			= msg.param4
-						state_msg.point.x			= msg.param5
-						state_msg.point.y			= msg.param6
-						state_msg.point.z			= msg.param7
+						if msg.param1 == self.ROBOT_STATE:
+							if self.DEBUG:
+								rospy.logwarn("[Master]: Received ROBOT_STATE from Robot %s", src_sys-1)
+							state_msg = RobotFormationState()
+							state_msg.header.stamp		= rospy.Time.now()
+							state_msg.received_goal		= msg.param2
+							state_msg.mission_started	= msg.param3
+							state_msg.arrived			= msg.param4
+							state_msg.point.x			= msg.param5
+							state_msg.point.y			= msg.param6
+							state_msg.point.z			= msg.param7
 
-						# publish msg to ROS
-						self.robot_state_pub_list[src_sys-1].publish(state_msg)
+							# publish msg to ROS
+							self.robot_state_pub_list[src_sys-1].publish(state_msg)
 
-					if msg.param1 == self.MASTER_CMD_ACK:
-						rospy.logwarn("[Master]: Got acknowledgment of %s from robot %s", self.CMD_STRING[msg.param2], src_sys-1)
+						if msg.param1 == self.MASTER_CMD_ACK:
+							rospy.logwarn("[Master]: Got acknowledgment of %s from robot %s", self.CMD_STRING[msg.param2], src_sys-1)
 
 				else:
 					if self.DEBUG:
