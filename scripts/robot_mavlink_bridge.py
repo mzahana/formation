@@ -26,6 +26,10 @@ class RobotBridge():
 		if self.DEBUG:
 			rospy.logwarn("[DEBUG] Robot ID %s", self.myID)
 
+		self.master_sys_id			= rospy.get_param("master_sys_id", 255)
+		if self.DEBUG:
+			rospy.logwarn("[Robot %s]: Master MAVLink ID is %s", self.myID, self.master_sys_id)
+
 		# pymavlink connections
 		#----------------------
 		# Used mainly to exchange direct MAVLink msgs with FCU (via mavros gcs_url for now)
@@ -47,16 +51,13 @@ class RobotBridge():
 			rospy.logwarn("[Robot %s]: Robot MAVLink ID = %s", self.myID, self.my_mavlink_ID)
 
 		# link to fcu (e.g. through MAVROS gcs bridge): udp
-		self.fcu_link				= mavutil.mavlink_connection("udpin:"+self.robot_udp_link, source_system=self.my_mavlink_ID)
+		self.fcu_link				= mavutil.mavlink_connection("udpin:"+self.robot_udp_link, source_system=self.master_sys_id)
 
 		# link to master: serial
 		self.mav 					= mavutil.mavlink_connection(self.robot_serial_link, baud=self.serial_baudrate, source_system=self.my_mavlink_ID)
 		#----------------------------
 		# DONE with pymavlink connection
 
-		self.master_sys_id			= rospy.get_param("master_sys_id", 255)
-		if self.DEBUG:
-			rospy.logwarn("[Robot %s]: Master MAVLink ID is %s", self.myID, self.master_sys_id)
 
 		# Disctionary to hold boolean status of commands
 		self.cmd					= {"Takeoff": 0, "Land": 0, "Arm": 0, "Disarm": 0, "Hold": 0, "GO": 0, "POSCTL": 0}
