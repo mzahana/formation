@@ -165,7 +165,8 @@ class MasterBridge():
 		""" Sends heartbeat msg to all vehicles
 		"""
 		self.mav.mav.heartbeat_send(mavutil.mavlink.MAV_TYPE_GCS, mavutil.mavlink.MAV_AUTOPILOT_INVALID, mavutil.mavlink.MAV_MODE_MANUAL_ARMED, 0, mavutil.mavlink.MAV_STATE_ACTIVE)
-		rospy.logwarn("A HEARTBEAT is sent to all vehicles")
+		if self.DEBUG:
+			rospy.logwarn("A HEARTBEAT is sent to all vehicles")
 
 	def recvCb(self):
 		# This callback will be running inside a Thread
