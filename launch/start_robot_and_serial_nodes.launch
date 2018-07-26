@@ -2,7 +2,7 @@
 	<arg name="id" default="0"/>
 	<arg name="ns" default="$(eval 'robot' + str( arg('id')) )"/>
 
-	<arg name="fcu_url" default="/dev/ttyPixhawk:57600" />
+	<arg name="fcu_url" default="/dev/ttyPixhawk:921600" />
 	<arg name="gcs_url" default="udp://@127.0.0.1:30000" />
 	<arg name="tgt_system" default="$(eval str( arg('id') + 1) )" />
 	<arg name="tgt_component" default="1" />
