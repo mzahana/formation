@@ -6,6 +6,12 @@
 #
 # WARNING! All changes made in this file will be lost!
 
+# ------------------ Added by user ------------------ 
+import rospy
+from std_msgs.msg import Int32, Float32
+from geometry_msgs.msg import Point
+from formation.msg import MultiVehicleState
+
 from PyQt4 import QtCore, QtGui
 
 try:
@@ -227,18 +233,145 @@ class Ui_Form(object):
         self.stopMission_button.setObjectName(_fromUtf8("stopMission_button"))
 
         self.retranslateUi(Form)
-        QtCore.QObject.connect(self.arm_button, QtCore.SIGNAL(_fromUtf8("clicked()")), Form.arm_slot)
-        QtCore.QObject.connect(self.disarm_button, QtCore.SIGNAL(_fromUtf8("clicked()")), Form.disarm_slot)
-        QtCore.QObject.connect(self.takoff_button, QtCore.SIGNAL(_fromUtf8("clicked()")), Form.takeoff_slot)
-        QtCore.QObject.connect(self.land_button, QtCore.SIGNAL(_fromUtf8("clicked()")), Form.land_slot)
-        QtCore.QObject.connect(self.hold_button, QtCore.SIGNAL(_fromUtf8("clicked()")), Form.hold_slot)
-        QtCore.QObject.connect(self.shutdownOBC_button, QtCore.SIGNAL(_fromUtf8("clicked()")), Form.shutdownobc_slot)
-        QtCore.QObject.connect(self.rebootOBC_button, QtCore.SIGNAL(_fromUtf8("clicked()")), Form.rebootobc_slot)
-        QtCore.QObject.connect(self.setOrigin_button, QtCore.SIGNAL(_fromUtf8("clicked()")), Form.setorigin_slot)
-        QtCore.QObject.connect(self.setEast_button, QtCore.SIGNAL(_fromUtf8("clicked()")), Form.seteast_slot)
-        QtCore.QObject.connect(self.startMission_button, QtCore.SIGNAL(_fromUtf8("clicked()")), Form.startmission_slot)
-        QtCore.QObject.connect(self.stopMission_button, QtCore.SIGNAL(_fromUtf8("clicked()")), Form.stopmission_slot)
+        QtCore.QObject.connect(self.arm_button, QtCore.SIGNAL(_fromUtf8("clicked()")), self.arm_slot)
+        QtCore.QObject.connect(self.disarm_button, QtCore.SIGNAL(_fromUtf8("clicked()")), self.disarm_slot)
+        QtCore.QObject.connect(self.takoff_button, QtCore.SIGNAL(_fromUtf8("clicked()")), self.takeoff_slot)
+        QtCore.QObject.connect(self.land_button, QtCore.SIGNAL(_fromUtf8("clicked()")), self.land_slot)
+        QtCore.QObject.connect(self.hold_button, QtCore.SIGNAL(_fromUtf8("clicked()")), self.hold_slot)
+        QtCore.QObject.connect(self.shutdownOBC_button, QtCore.SIGNAL(_fromUtf8("clicked()")), self.shutdownobc_slot)
+        QtCore.QObject.connect(self.rebootOBC_button, QtCore.SIGNAL(_fromUtf8("clicked()")), self.rebootobc_slot)
+        QtCore.QObject.connect(self.setOrigin_button, QtCore.SIGNAL(_fromUtf8("clicked()")), self.setorigin_slot)
+        QtCore.QObject.connect(self.setEast_button, QtCore.SIGNAL(_fromUtf8("clicked()")), self.seteast_slot)
+        QtCore.QObject.connect(self.startMission_button, QtCore.SIGNAL(_fromUtf8("clicked()")), self.startmission_slot)
+        QtCore.QObject.connect(self.stopMission_button, QtCore.SIGNAL(_fromUtf8("clicked()")), self.stopmission_slot)
         QtCore.QMetaObject.connectSlotsByName(Form)
+
+        # ------------------ Added by user ------------------ 
+        # ROS Publishers
+        self.arm_pub		= rospy.Publisher('/arm_robot', Int32, queue_size=10)
+        self.disarm_pub		= rospy.Publisher('/disarm_robot', Int32, queue_size=10)
+        self.takeoff_pub	= rospy.Publisher('/takeoff_robot', Int32, queue_size=10)
+        self.land_pub		= rospy.Publisher('/land_robot', Int32, queue_size=10)
+        self.hold_pub		= rospy.Publisher('/hold_robot', Int32, queue_size=10)
+        self.shutdown_pub	= rospy.Publisher('/shutdown_robot', Int32, queue_size=10)
+        self.reboot_pub		= rospy.Publisher('/reboot_robot', Int32, queue_size=10)
+        self.setorigin_pub	= rospy.Publisher('/setOrigin', Point, queue_size=10)
+        self.seteast_pub	= rospy.Publisher('/setEast', Point, queue_size=10)
+
+        # ROS Subscribers
+        rospy.Subscriber('vehicles_states', MultiVehicleState, self.vehicles_states_Cb)
+
+    def vehicles_states_Cb(self, msg):
+    	pass
+
+    def arm_slot(self):
+    	# get vehicle number and convert to int
+    	vn = int(self.cmd_vehicle_number.text())
+
+    	# create msg object
+    	msg = Int32()
+    	#populate data
+    	msg.data = vn
+    	# publish
+    	self.arm_pub.publish(msg)
+    
+    def disarm_slot(self):
+    	# get vehicle number and convert to int
+    	vn = int(self.cmd_vehicle_number.text())
+
+    	# create msg object
+    	msg = Int32()
+    	#populate data
+    	msg.data = vn
+    	# publish
+    	self.disarm_pub.publish(msg)
+    
+    def takeoff_slot(self):
+    	# get vehicle number and convert to int
+    	vn = int(self.cmd_vehicle_number.text())
+
+    	# create msg object
+    	msg = Int32()
+    	#populate data
+    	msg.data = vn
+    	# publish
+    	self.takeoff_pub.publish(msg)
+
+    def land_slot(self):
+    	# get vehicle number and convert to int
+    	vn = int(self.cmd_vehicle_number.text())
+
+    	# create msg object
+    	msg = Int32()
+    	#populate data
+    	msg.data = vn
+    	# publish
+    	self.land_pub.publish(msg)
+
+    def hold_slot(self):
+    	# get vehicle number and convert to int
+    	vn = int(self.cmd_vehicle_number.text())
+
+    	# create msg object
+    	msg = Int32()
+    	#populate data
+    	msg.data = vn
+    	# publish
+    	self.hold_pub.publish(msg)
+
+    def shutdownobc_slot(self):
+    	# get vehicle number and convert to int
+    	vn = int(self.cmd_vehicle_number.text())
+
+    	# create msg object
+    	msg = Int32()
+    	#populate data
+    	msg.data = vn
+    	# publish
+    	self.shutdown_pub.publish(msg)
+
+    def rebootobc_slot(self):
+    	# get vehicle number and convert to int
+    	vn = int(self.cmd_vehicle_number.text())
+
+    	# create msg object
+    	msg = Int32()
+    	#populate data
+    	msg.data = vn
+    	# publish
+    	self.reboot_pub.publish(msg)
+
+    def setorigin_slot(self):
+    	# get lat/long
+    	lat = float(self.origin_lat_edit.text())
+    	lon = float(self.origin_long_edit.text())
+
+    	# create msg object
+    	msg = Point()
+    	#populate data
+    	msg.x = lat
+    	msg.y = lon
+    	# publish
+    	self.setorigin_pub.publish(msg)
+
+    def seteast_slot(self):
+    	# get lat/long
+    	lat = float(self.east_lat_edit.text())
+    	lon = float(self.east_long_edit.text())
+
+    	# create msg object
+    	msg = Point()
+    	#populate data
+    	msg.x = lat
+    	msg.y = lon
+    	# publish
+    	self.seteast_pub.publish(msg)
+
+    def startmission_slot(self):
+    	pass
+
+    def stopmission_slot(self):
+    	pass
 
     def retranslateUi(self, Form):
         Form.setWindowTitle(_translate("Form", "Form", None))
