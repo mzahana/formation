@@ -233,17 +233,17 @@ class Ui_Form(object):
         self.stopMission_button.setObjectName(_fromUtf8("stopMission_button"))
 
         self.retranslateUi(Form)
-        QtCore.QObject.connect(self.arm_button, QtCore.SIGNAL(_fromUtf8("clicked()")), Form.arm_slot)
-        QtCore.QObject.connect(self.disarm_button, QtCore.SIGNAL(_fromUtf8("clicked()")), Form.disarm_slot)
-        QtCore.QObject.connect(self.takoff_button, QtCore.SIGNAL(_fromUtf8("clicked()")), Form.takeoff_slot)
-        QtCore.QObject.connect(self.land_button, QtCore.SIGNAL(_fromUtf8("clicked()")), Form.land_slot)
-        QtCore.QObject.connect(self.hold_button, QtCore.SIGNAL(_fromUtf8("clicked()")), Form.hold_slot)
-        QtCore.QObject.connect(self.shutdownOBC_button, QtCore.SIGNAL(_fromUtf8("clicked()")), Form.shutdownobc_slot)
-        QtCore.QObject.connect(self.rebootOBC_button, QtCore.SIGNAL(_fromUtf8("clicked()")), Form.rebootobc_slot)
-        QtCore.QObject.connect(self.setOrigin_button, QtCore.SIGNAL(_fromUtf8("clicked()")), Form.setorigin_slot)
-        QtCore.QObject.connect(self.setEast_button, QtCore.SIGNAL(_fromUtf8("clicked()")), Form.seteast_slot)
-        QtCore.QObject.connect(self.startMission_button, QtCore.SIGNAL(_fromUtf8("clicked()")), Form.startmission_slot)
-        QtCore.QObject.connect(self.stopMission_button, QtCore.SIGNAL(_fromUtf8("clicked()")), Form.stopmission_slot)
+        QtCore.QObject.connect(self.arm_button, QtCore.SIGNAL(_fromUtf8("clicked()")), self.arm_slot)
+        QtCore.QObject.connect(self.disarm_button, QtCore.SIGNAL(_fromUtf8("clicked()")), self.disarm_slot)
+        QtCore.QObject.connect(self.takoff_button, QtCore.SIGNAL(_fromUtf8("clicked()")), self.takeoff_slot)
+        QtCore.QObject.connect(self.land_button, QtCore.SIGNAL(_fromUtf8("clicked()")), self.land_slot)
+        QtCore.QObject.connect(self.hold_button, QtCore.SIGNAL(_fromUtf8("clicked()")), self.hold_slot)
+        QtCore.QObject.connect(self.shutdownOBC_button, QtCore.SIGNAL(_fromUtf8("clicked()")), self.shutdownobc_slot)
+        QtCore.QObject.connect(self.rebootOBC_button, QtCore.SIGNAL(_fromUtf8("clicked()")), self.rebootobc_slot)
+        QtCore.QObject.connect(self.setOrigin_button, QtCore.SIGNAL(_fromUtf8("clicked()")), self.setorigin_slot)
+        QtCore.QObject.connect(self.setEast_button, QtCore.SIGNAL(_fromUtf8("clicked()")), self.seteast_slot)
+        QtCore.QObject.connect(self.startMission_button, QtCore.SIGNAL(_fromUtf8("clicked()")), self.startmission_slot)
+        QtCore.QObject.connect(self.stopMission_button, QtCore.SIGNAL(_fromUtf8("clicked()")), self.stopmission_slot)
         QtCore.QMetaObject.connectSlotsByName(Form)
 
         # ------------------ Added by user ------------------ 
@@ -308,7 +308,7 @@ class Ui_Form(object):
             red             = "#FF0000"
             green           = "#008000"
 
-            for in in range(self.nRobots):
+            for i in range(self.nRobots):
 
                 sys_connection = sys_connection and msg.vehicles_states[i].connected
                 sys_armed = sys_armed and msg.vehicles_states[i].armed
