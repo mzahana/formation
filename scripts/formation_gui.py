@@ -267,6 +267,7 @@ class Ui_Form(object):
         # ROS Parameters
         # get nRobots
         self.nRobots = rospy.get_param("nRobots", 5)
+        self.nRobotsEdit.setText(str(self.nRobots))
 
         # Initialize lists
         self.vehicles_connection_status.clear()
