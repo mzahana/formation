@@ -13,7 +13,7 @@ from geometry_msgs.msg import Point
 from formation.msg import MultiVehicleState
 
 from PyQt4 import QtCore, QtGui
-from PyQt4.QtGui import QListWidgetItem
+from PyQt4.QtGui import QListWidgetItem, QColor
 
 try:
     _fromUtf8 = QtCore.QString.fromUtf8
@@ -268,11 +268,16 @@ class Ui_Form(object):
         # get nRobots
         self.nRobots = rospy.get_param("nRobots", 5)
 
-        # initialize lists
+        # Initialize lists
         self.vehicles_connection_status.clear()
         self.vehicles_battery_status.clear()
         self.vehicles_mode_status.clear()
         self.vehicles_armed_status.clear()
+
+        # Initilaize overall system status
+        self.system_connection_status.setText('Not Connected')
+        self.system_armed_status.setText('Not Armed')
+        self.system_health_status.setText('Health Unknown')
 
         red = "#FF0000"
         for i in range(self.nRobots):
@@ -280,6 +285,8 @@ class Ui_Form(object):
             bool_item.setBackground( QColor(red) )
             self.vehicles_connection_status.addItem(bool_item)
 
+            bool_item = QListWidgetItem("%i- False" %(i+1))
+            bool_item.setBackground( QColor(red) )
             self.vehicles_armed_status.addItem(bool_item)
 
             mode_item = QListWidgetItem("%i- Unknown" %(i+1))
