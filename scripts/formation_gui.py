@@ -275,9 +275,9 @@ class Ui_Form(object):
         self.vehicles_armed_status.clear()
 
         # Initilaize overall system status
-        self.system_connection_status.setText('Not Connected')
-        self.system_armed_status.setText('Not Armed')
-        self.system_health_status.setText('Health Unknown')
+        self.system_connection_status.setText('No')
+        self.system_armed_status.setText('No')
+        self.system_health_status.setText('Unknown')
 
         red = "#FF0000"
         for i in range(self.nRobots):
@@ -355,24 +355,24 @@ class Ui_Form(object):
             # Update over all system status
 
             if sys_connection:
-                self.system_connection_status.setText('Connected')
+                self.system_connection_status.setText('Ok')
                 # TODO: Change background color to green!
             else:
-                self.system_connection_status.setText('Not Connected')
+                self.system_connection_status.setText('Not OK')
                 # TODO: Change background color to red!
 
             if sys_armed:
-                self.system_armed_status.setText('Armed')
+                self.system_armed_status.setText('Yes')
                 # TODO: Change background color to greem!
             else:
-                self.system_armed_status.setText('Not Armed')
+                self.system_armed_status.setText('No')
                 # TODO: Change background color to red!
 
             if sys_health:
-                self.system_health_status.setText('Health OK')
+                self.system_health_status.setText('OK')
                 # TODO: Change background color to green!
             else:
-                self.system_health_status.setText('Health Bad')
+                self.system_health_status.setText('Bad')
                 # TODO: Change background color to red!
         else:
             rospy.logwarn("Number of vehicles in vehicles_status_msg is not equal to defined number of robots!")
