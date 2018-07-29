@@ -9,8 +9,8 @@ sudo pip install pymap3d==1.6.3
 sudo pip install lap
 
 # The following is for pymavlink
-sudo apt-get install libxml2-dev libxslt-dev python-dev
-sudo apt-get install python-lxml
+sudo apt-get install libxml2-dev libxslt-dev python-dev -y
+sudo apt-get install python-lxml -y
 sudo pip install future
 sudo pip install pymavlink
 
@@ -30,3 +30,5 @@ cd /lib/systemd/system
 sudo cp ~/catkin_ws/src/formation/sh/formation.service .
 sudo systemctl daemon-reload
 sudo systemctl enable formation.service
+
+cd ~
