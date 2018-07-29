@@ -24,7 +24,6 @@ chmod +x startup_launch.sh
 
 cd ~/catkin_ws
 catkin build
-echo "source ~/catkin_ws/devel/setup.bash" >> ~/.bashrc
 
 # copy and enable the service file
 cd /lib/systemd/system
