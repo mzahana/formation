@@ -10,6 +10,7 @@ sudo pip install lap
 
 # The following is for pymavlink
 sudo apt-get install libxml2-dev libxslt-dev python-dev
+sudo apt-get install python-lxml
 sudo pip install future
 sudo pip install pymavlink
 
