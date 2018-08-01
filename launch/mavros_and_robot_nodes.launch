@@ -11,6 +11,8 @@
 
 	<node pkg="topic_tools" name="topic_relay_$(arg id)" type="relay" args="/vrpn_client_node/$(arg rbname)/pose /$(arg ns)/mavros/vision_pose/pose" if="$(arg indoor)"/>
 
+  <include file="$(find vrpn_client_ros)/launch/sample.launch" args="server:=192.168.0.101" if="$(arg indoor)"/>
+
 	<include file="$(find formation)/launch/mavros_ns.launch">
 		<arg name="fcu_url" value="$(arg fcu_url)" />
 		<arg name="gcs_url" default="$(arg gcs_url)" />

@@ -284,10 +284,10 @@ class Robot:
 			y = self.local_pose.pose.position.y
 			z = self.local_pose.pose.position.z
 
-		self.current_pos = np.array([x,y,z])
-		self.robot_msg.point.x = x
-		self.robot_msg.point.y = y
-		self.robot_msg.point.z = z
+			self.current_pos = np.array([x,y,z])
+			self.robot_msg.point.x = x
+			self.robot_msg.point.y = y
+			self.robot_msg.point.z = z
 
 	def setnRobotsCb(self, msg):
 		pkg_path = rospack.get_path('formation')
