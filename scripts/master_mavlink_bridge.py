@@ -199,12 +199,13 @@ class MasterBridge():
 								rospy.logwarn("[Master]: Received ROBOT_STATE from Robot %s", src_sys-1)
 							state_msg = RobotFormationState()
 							state_msg.header.stamp		= rospy.Time.now()
+							state_msg.robot_id			= src_sys - 1
 							state_msg.received_goal		= msg.param2
 							state_msg.mission_started	= msg.param3
 							state_msg.arrived			= msg.param4
-							state_msg.point.x			= msg.param5
-							state_msg.point.y			= msg.param6
-							state_msg.point.z			= msg.param7
+							state_msg.point.x			= float(msg.param5)
+							state_msg.point.y			= float(msg.param6)
+							state_msg.point.z			= float(msg.param7)
 
 							# publish msg to ROS
 							self.robot_state_pub_list[src_sys-1].publish(state_msg)
