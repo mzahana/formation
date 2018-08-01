@@ -282,19 +282,19 @@ class Ui_Form(object):
 
         red = "#FF0000"
         for i in range(self.nRobots):
-            bool_item = QListWidgetItem("%i- False" %(i+1))
+            bool_item = QListWidgetItem(( "%i- False" %(i+1) ))
             bool_item.setBackground( QColor(red) )
             self.vehicles_connection_status.addItem(bool_item)
 
-            bool_item = QListWidgetItem("%i- False" %(i+1))
+            bool_item = QListWidgetItem( ("%i- False" %(i+1)) )
             bool_item.setBackground( QColor(red) )
             self.vehicles_armed_status.addItem(bool_item)
 
-            mode_item = QListWidgetItem("%i- Unknown" %(i+1))
+            mode_item = QListWidgetItem(("%i- Unknown" %(i+1)))
             mode_item.setBackground( QColor(red) )
             self.vehicles_mode_status.addItem(mode_item)
 
-            bat_item = QListWidgetItem("%i- 0.0" %(i+1))
+            bat_item = QListWidgetItem( ("%i- 0.0" %(i+1)) )
             bat_item.setBackground( QColor(red) )
             self.vehicles_battery_status.addItem(bat_item)
 
@@ -325,32 +325,32 @@ class Ui_Form(object):
 
                 # connection status
                 if msg.vehicles_states[i].connected:
-                    bool_item = QListWidgetItem("%i- True" %(i+1))
+                    bool_item = QListWidgetItem( ("%i- True" %(i+1)) )
                     bool_item.setBackground( QColor(green) )
                     self.vehicles_connection_status.addItem(bool_item)
                 else:
-                    bool_item = QListWidgetItem("%i- False" %(i+1))
+                    bool_item = QListWidgetItem( ("%i- False" %(i+1)) )
                     bool_item.setBackground( QColor(red) )
                     self.vehicles_connection_status.addItem(bool_item)
 
                 # armed status
                 if msg.vehicles_states[i].armed:
-                    bool_item = QListWidgetItem("%i- True" %(i+1))
+                    bool_item = QListWidgetItem( ("%i- True" %(i+1)) )
                     bool_item.setBackground( QColor(green) )
                     self.vehicles_armed_status.addItem(bool_item)
                 else:
-                    bool_item = QListWidgetItem("%i- False" %(i+1))
+                    bool_item = QListWidgetItem( ("%i- False" %(i+1)) )
                     bool_item.setBackground( QColor(red) )
                     self.vehicles_armed_status.addItem(bool_item)
 
                 # flight mode
                 mode_str = str(msg.vehicles_states[i].flight_mode)
-                mode_item = QListWidgetItem("%i- "+mode_str %(i+1))
+                mode_item = QListWidgetItem( (("%i- "+mode_str) %(i+1)) )
                 self.vehicles_mode_status.addItem(mode_item)
 
                 # battery level
                 bat_str = str(msg.vehicles_states[i].battery)
-                bat_item = QListWidgetItem("%i- "+bat_str %(i+1))
+                bat_item = QListWidgetItem( ( ("%i- "+bat_str) %(i+1)) )
                 self.vehicles_battery_status.addItem(bat_item)
 
             # Update over all system status
