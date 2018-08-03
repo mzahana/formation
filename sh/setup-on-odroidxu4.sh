@@ -12,6 +12,7 @@ sudo pip install lap
 sudo apt-get install libxml2-dev libxslt-dev python-dev -y
 sudo apt-get install python-lxml -y
 sudo pip install future
+sudo pip install pyserial
 sudo pip install pymavlink
 
 sudo apt-get install python-wstool python-rosinstall-generator python-catkin-tools -y
