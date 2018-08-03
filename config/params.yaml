@@ -1,5 +1,5 @@
 # To print debug msgs
-DEBUG: True
+DEBUG: False
 # Number of Robots
 nRobots: 6
 

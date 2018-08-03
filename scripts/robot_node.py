@@ -207,47 +207,49 @@ class Robot:
 		self.cmd = self.cmd.fromkeys(self.cmd, 0)
 		self.cmd["Arm"] = 1
 
-	def armAllCb(self, msg):
-		self.cmd = self.cmd.fromkeys(self.cmd, 0)
-		self.cmd["Arm"] = 1
+	def arm_robot_cb(self, msg):
+		if msg.data == 0 or msg.data == self.myID:
+			self.cmd = self.cmd.fromkeys(self.cmd, 0)
+			self.cmd["Arm"] = 1
 
 	def disArmCb(self, msg):
 		self.cmd = self.cmd.fromkeys(self.cmd, 0)
 		self.cmd["Disarm"] = 1
 
-	def disArmAllCb(self, msg):
-		self.cmd = self.cmd.fromkeys(self.cmd, 0)
-		self.cmd["Disarm"] = 1
+	def disarm_robot_cb(self, msg):
+		if msg.data == 0 or msg.data == self.myID:
+			self.cmd = self.cmd.fromkeys(self.cmd, 0)
+			self.cmd["Disarm"] = 1
 
 	def takeoffCb(self, msg):
 		self.cmd = self.cmd.fromkeys(self.cmd, 0)
 		self.cmd["Takeoff"] = 1
 
-	def takeoffAllCb(self, msg):
-		self.cmd = self.cmd.fromkeys(self.cmd, 0)
-		self.cmd["Takeoff"] = 1
+	def takeof_robot_Cb(self, msg):
+		if msg.data == 0 or msg.data == self.myID:
+			self.cmd = self.cmd.fromkeys(self.cmd, 0)
+			self.cmd["Takeoff"] = 1
+
 
 	def landCb(self, msg):
 		self.cmd = self.cmd.fromkeys(self.cmd, 0)
 		self.cmd["Land"] = 1
 
-	def landAllCb(self, msg):
-		self.cmd = self.cmd.fromkeys(self.cmd, 0)
-		self.cmd["Land"] = 1
+	def land_robot_cb(self, msg):
+		if msg.data == 0 or msg.data == self.myID:
+			self.cmd = self.cmd.fromkeys(self.cmd, 0)
+			self.cmd["Land"] = 1
 
 	def holdCb(self, msg):
 		self.cmd = self.cmd.fromkeys(self.cmd, 0)
 		self.cmd["Hold"] = 1
 
-	def holdAllCb(self, msg):
-		self.cmd = self.cmd.fromkeys(self.cmd, 0)
-		self.cmd["Hold"] = 1
+	def hold_robot_cb(self, msg):
+		if msg.data == 0 or msg.data == self.myID:
+			self.cmd = self.cmd.fromkeys(self.cmd, 0)
+			self.cmd["Hold"] = 1
 
 	def posctlCb(self, msg):
-		self.cmd = self.cmd.fromkeys(self.cmd, 0)
-		self.cmd["POSCTL"] = 1
-
-	def posctlAllCb(self, msg):
 		self.cmd = self.cmd.fromkeys(self.cmd, 0)
 		self.cmd["POSCTL"] = 1
 
@@ -276,6 +278,16 @@ class Robot:
 	def localPoseCb(self, msg):
 		self.local_pose = msg
 		self.curr_z_enu = msg.pose.position.z
+
+		if self.INDOOR:
+			x = self.local_pose.pose.position.x
+			y = self.local_pose.pose.position.y
+			z = self.local_pose.pose.position.z
+
+			self.current_pos = np.array([x,y,z])
+			self.robot_msg.point.x = x
+			self.robot_msg.point.y = y
+			self.robot_msg.point.z = z
 
 	def setnRobotsCb(self, msg):
 		pkg_path = rospack.get_path('formation')
@@ -367,8 +379,17 @@ class Robot:
 	def shutdownCb(self, msg):
 		call("sudo shutdown -h now", shell=True)
 
+	def shutdown_robot_cb(self, msg):
+		if msg.data == 0 or msg.data == self.myID:
+			call("sudo shutdown -h now", shell=True)
+
 	def rebootCb(self, msg):
 		call("sudo reboot", shell=True)
+
+	def reboot_robot_cb(self, msg):
+		if msg.data == 0 or msg.data == self.myID:
+			call("sudo reboot", shell=True)
+
 	############### End of Callbacks #################
 
 	def next_sp(self, t):
@@ -470,17 +491,27 @@ def main():
 
 	# Subscribers: Commands
 	rospy.Subscriber('takeoff', Empty, R.takeoffCb)
-	rospy.Subscriber('/takeoff', Empty, R.takeoffAllCb)
+	rospy.Subscriber('/takeoff', Empty, R.takeoffCb)
+	rospy.Subscriber('/takeoff_robot', Int32, R.takeof_robot_Cb)
+
 	rospy.Subscriber('land', Empty, R.landCb)
-	rospy.Subscriber('/land', Empty, R.landAllCb)
+	rospy.Subscriber('/land', Empty, R.landCb)
+	rospy.Subscriber('/land_robot', Int32, R.land_robot_cb)
+
 	rospy.Subscriber('arm', Empty, R.armCb)
-	rospy.Subscriber('/arm', Empty, R.armAllCb)
+	rospy.Subscriber('/arm', Empty, R.armCb)
+	rospy.Subscriber('/arm_robot', Int32, R.arm_robot_cb)
+
 	rospy.Subscriber('disarm', Empty, R.disArmCb)
-	rospy.Subscriber('/disarm', Empty, R.disArmAllCb)
+	rospy.Subscriber('/disarm', Empty, R.disArmCb)
+	rospy.Subscriber('/disarm_robot', Int32, R.disarm_robot_cb)
+
 	rospy.Subscriber('hold', Empty, R.holdCb)
-	rospy.Subscriber('/hold', Empty, R.holdAllCb)
+	rospy.Subscriber('/hold', Empty, R.holdCb)
+	rospy.Subscriber('/hold_robot', Int32, R.hold_robot_cb)
+
 	rospy.Subscriber('posctl', Empty, R.posctlCb)
-	rospy.Subscriber('/posctl', Empty, R.posctlAllCb)
+	rospy.Subscriber('/posctl', Empty, R.posctlCb)
 
 	rospy.Subscriber('/go', Empty, R.goCb)
 
@@ -490,9 +521,11 @@ def main():
 
 	rospy.Subscriber('shutdown', Empty, R.shutdownCb)
 	rospy.Subscriber('/shutdown', Empty, R.shutdownCb)
+	rospy.Subscriber('/shutdown_robot', Int32, R.shutdown_robot_cb)
 
 	rospy.Subscriber('reboot', Empty, R.rebootCb)
 	rospy.Subscriber('/reboot', Empty, R.rebootCb)
+	rospy.Subscriber('/reboot_robot', Int32, R.reboot_robot_cb)
 
 	# Publisher: PositionTarget
 	setp_pub = rospy.Publisher("mavros/setpoint_raw/local", PositionTarget, queue_size=1)

@@ -53,6 +53,8 @@ find_package(catkin REQUIRED COMPONENTS
    RobotFormationState.msg
    FormationPositions.msg
    RobotTarget.msg
+   VehicleState.msg
+   MultiVehicleState.msg
 )
 
 ## Generate services in the 'srv' folder

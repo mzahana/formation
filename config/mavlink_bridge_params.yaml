@@ -1,6 +1,14 @@
+# Master MAVLink bridge params
 master_sys_id: 255
+master_udp_link: "127.0.0.1:30000"
+master_serial_link: "/dev/ttyUSB0"
+ENABLE_MASTER_GCS: True
+USE_SERIAL: True
+CONN_TOUT: 5.0
 
-master_udp: 30000
-robot_udp: 30000
+# Robot MAVLink bridge params
+robot_udp_link: "127.0.0.1:30000"
+robot_serial_link: "/dev/ttyTelem"
 
-ENABLE_MASTER_GCS: False
+# Common params
+serial_baudrate: 57600
