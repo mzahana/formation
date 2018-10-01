@@ -1,7 +1,7 @@
 # To print debug msgs
 DEBUG: True
 # Number of Robots
-nRobots: 6
+nRobots: 8
 
 # if indoor position system is used
 indoor: False

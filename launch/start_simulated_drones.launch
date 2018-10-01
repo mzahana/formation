@@ -62,4 +62,21 @@
         </node>
     </group>
 
+    <group ns="robot6">
+        <arg name="id" value="6"/>
+        <rosparam command="load" file="$(find formation)/config/params.yaml" />
+        <param name="myID" type="int" value="$(arg id)" />
+
+        <node pkg="formation" type="robot_node.py" name="robot_node"  required="true" output="screen">
+        </node>
+    </group>
+
+    <group ns="robot7">
+        <arg name="id" value="7"/>
+        <rosparam command="load" file="$(find formation)/config/params.yaml" />
+        <param name="myID" type="int" value="$(arg id)" />
+
+        <node pkg="formation" type="robot_node.py" name="robot_node"  required="true" output="screen">
+        </node>
+    </group>
 </launch>
