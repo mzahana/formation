@@ -7,10 +7,10 @@ nRobots: 8
 indoor: False
 
 # Robot's radius
-robot_radius: 0.5
+robot_radius: 0.25
 
 # maximum robot's velocity [m/s]
-vmax: 2.0
+vmax: 4.0
 
 # Takeoff altitude [meters]
 TOALT: 1.5
