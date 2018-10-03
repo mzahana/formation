@@ -404,11 +404,15 @@ def main():
 	# Activiat START state
 	M.START = True
 
+	# Flag to print DEBUG messages only ones to avoid flooding the terminal
+	DEBUG_FLAG = True
+
 	while not rospy.is_shutdown():
 
 		if M.M_END:
-			if M.DEBUG:
+			if M.DEBUG and DEBUG_FLAG:
 				rospy.logwarn("[master_node]: Mission END")
+				DEBUG_FLAG = False
 			M.START = True
 			M.USER_START = False
 			M.ASSIGNMENT = False
@@ -422,48 +426,65 @@ def main():
 			M.shape_counter= 0
 
 
+
 		if M.USER_START and M.START:
-			if M.DEBUG:
+			if M.DEBUG and DEBUG_FLAG:
 				rospy.logwarn("[master_node]: Mission STARTED")
+				DEBUG_FLAG = False
 			M.START = False
 			M.ASSIGNMENT = True
 
+			DEBUG_FLAG = True
+
 		if M.ASSIGNMENT:
-			if M.DEBUG:
+			if M.DEBUG and DEBUG_FLAG:
 				rospy.logwarn("[master_node]: Mission in ASSIGNMENT state")
+				rospy.logwarn("Processing shape %s", M.shape_counter)
+				DEBUG_FLAG = False
+
 			M.ASSIGNMENT = False
 
-			rospy.logwarn("Processing shape %s", M.shape_counter)
 			if M.start_assignment():
 				M.GOAL_SEND = True
+				DEBUG_FLAG = True
 			else:
 				M.M_END = True
+				DEBUG_FLAG = True
 
 		if M.GOAL_SEND:
-			if M.DEBUG:
+			if M.DEBUG and DEBUG_FLAG:
 				rospy.logwarn("[master_node]: GOAL_SEND state")
+				DEBUG_FLAG = False
+
 			if not all(M.received_goals):
 				form_pub.publish(M.goals_msg)
 			else:
 				M.GOAL_SEND = False
 				M.SEND_GO = True
+				DEBUG_FLAG = True
 
 		if M.SEND_GO:
-			if M.DEBUG:
+			if M.DEBUG and DEBUG_FLAG:
 				rospy.logwarn("[master_node]: SEND_GO state")
-			if not all(M.robots_started_mission):
+				DEBUG_FLAG = False
+
+			if not all(np.array(M.robots_started_mission) | np.array(M.arrival_state)):
 				go_pub.publish(go_msg)
 			else:
 				M.SEND_GO = False
 				M.CHECK_SHAPE = True
+				DEBUG_FLAG = True
 
 		if M.CHECK_SHAPE:
-			if M.DEBUG:
+			if M.DEBUG and DEBUG_FLAG:
 				rospy.logwarn("[master_node]: CHECK_SHAPE state")
+				DEBUG_FLAG = False
+
 			if M.isFormationComplete():
 				t0 = time.time()
 				M.CHECK_SHAPE = False
 				M.STAY_IN_SHAPE = True
+				DEBUG_FLAG = True
 
 				rospy.logwarn("Shape %s is in place", M.shape_counter)
 				if len(M.Sdt) == M.nS:
@@ -474,8 +495,10 @@ def main():
 				rospy.logwarn("Waiting %s [seconds] at shape %s.", dt_shape, M.shape_counter)
 
 		if M.STAY_IN_SHAPE:
-			if M.DEBUG:
+			if M.DEBUG and DEBUG_FLAG:
 				rospy.logwarn("[master_node]: STAY_IN_SHAPE state")
+				DEBUG_FLAG = False
+
 			dt = time.time() - t0
 			if len(M.Sdt) == M.nS:
 				dt_shape = M.Sdt[M.shape_counter]
@@ -492,9 +515,12 @@ def main():
 					M.START = True # to be ready for new start
 					M.USER_START = False # to wait for start signal from user
 
+					DEBUG_FLAG = True
+
 					rospy.logwarn("############ Mission is done! ###############")
 				else:
 					M.ASSIGNMENT = True
+					DEBUG_FLAG = True
 					rospy.logwarn("Going to shape %s", M.shape_counter)
 
 

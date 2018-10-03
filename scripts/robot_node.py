@@ -556,7 +556,7 @@ def main():
 				mode.setArm()
 				mode.setOffboardMode()
 
-		if R.cmd["GO"] and R.robot_msg.received_goal and not R.robot_msg.arrived:
+		if R.cmd["GO"] and R.robot_msg.received_goal: # and not R.robot_msg.arrived:
 			R.cmd = R.cmd.fromkeys(R.cmd, 0)
 			R.cmd["GO"] = 1
 			if not R.t0_trigger:
@@ -572,9 +572,9 @@ def main():
 				R.robot_msg.received_goal = False
 				R.robot_msg.arrived = True
 				R.robot_msg.mission_started = False
-		elif R.cmd["GO"] and (not R.robot_msg.received_goal or R.robot_msg.arrived):
-			R.cmd = R.cmd.fromkeys(R.cmd, 0)
-			rospy.logwarn("[Robot %s]: Not executing GO signal. Either Goal is not recieved or already arrived", R.myID)
+		#elif R.cmd["GO"] and (not R.robot_msg.received_goal or R.robot_msg.arrived):
+			#R.cmd = R.cmd.fromkeys(R.cmd, 0)
+			#rospy.logwarn("[Robot %s]: Not executing GO signal. Either Goal is not recieved or already arrived", R.myID)
 
 		R.robot_msg.robot_id = R.myID
 		R.mavros_sp.header.stamp = rospy.Time.now()
